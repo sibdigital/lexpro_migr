@@ -13,7 +13,8 @@ SELECT
     CAST(CAST(FLAG_DEP as varchar(1) character set win1251) as varchar(1) character set utf8) AS FLAG_DEP,
     FLAG_REP,
     FLAG_SORT,
-    CAST(CAST(NAME2 as varchar(50) character set win1251) as varchar(50) character set utf8) AS NAME
+    CAST(CAST(NAME2 as varchar(50) character set win1251) as varchar(50) character set utf8) AS NAME2
 FROM
-    ORG;
+    ORG
+WHERE ID BETWEEN :start AND :end
 

@@ -6,18 +6,42 @@ import java.util.Objects;
 @Entity
 @Table(name = "person")
 public class PersonEntity {
-    private Long id;
-    private String fio;
-    private Long orgId;
-    private Long departId;
-    private Long doljnostId;
-    private String postindx;
-    private String adres;
-    private String phone;
-    private String email;
-
     @Id
     @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "fio")
+    private String fio;
+
+    @Basic
+    @Column(name = "org_id")
+    private Long orgId;
+
+    @Basic
+    @Column(name = "depart_id")
+    private Long departId;
+
+    @Basic
+    @Column(name = "doljnost_id")
+    private Long doljnostId;
+
+    @Basic
+    @Column(name = "postindx")
+    private String postindx;
+
+    @Basic
+    @Column(name = "adres")
+    private String adres;
+
+    @Basic
+    @Column(name = "phone")
+    private String phone;
+
+    @Basic
+    @Column(name = "email")
+    private String email;
+
     public Long getId() {
         return id;
     }
@@ -26,8 +50,6 @@ public class PersonEntity {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "fio")
     public String getFio() {
         return fio;
     }
@@ -36,48 +58,6 @@ public class PersonEntity {
         this.fio = fio;
     }
 
-    @Basic
-    @Column(name = "postindx")
-    public String getPostindx() {
-        return postindx;
-    }
-
-    public void setPostindx(String postindx) {
-        this.postindx = postindx;
-    }
-
-    @Basic
-    @Column(name = "adres")
-    public String getAdres() {
-        return adres;
-    }
-
-    public void setAdres(String adres) {
-        this.adres = adres;
-    }
-
-    @Basic
-    @Column(name = "phone")
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    @Basic
-    @Column(name = "email")
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    @Basic
-    @Column(name = "org_id")
     public Long getOrgId() {
         return orgId;
     }
@@ -86,8 +66,6 @@ public class PersonEntity {
         this.orgId = orgId;
     }
 
-    @Basic
-    @Column(name = "depart_id")
     public Long getDepartId() {
         return departId;
     }
@@ -96,14 +74,44 @@ public class PersonEntity {
         this.departId = departId;
     }
 
-    @Basic
-    @Column(name = "doljnost_id")
     public Long getDoljnostId() {
         return doljnostId;
     }
 
     public void setDoljnostId(Long doljnostId) {
         this.doljnostId = doljnostId;
+    }
+
+    public String getPostindx() {
+        return postindx;
+    }
+
+    public void setPostindx(String postindx) {
+        this.postindx = postindx;
+    }
+
+    public String getAdres() {
+        return adres;
+    }
+
+    public void setAdres(String adres) {
+        this.adres = adres;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override

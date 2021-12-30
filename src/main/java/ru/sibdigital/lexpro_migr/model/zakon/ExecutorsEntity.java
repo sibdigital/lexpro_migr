@@ -5,23 +5,48 @@ import java.sql.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "EXECUTORS", schema = "", catalog = "")
+@Table(name = "executors")
 public class ExecutorsEntity {
-    private int execGuid;
+    @Id
+    @Column(name = "exec_guid")
+    private Long execGuid;
+
+    @Basic
+    @Column(name = "task_id")
+    private Long taskId;
+
+    @Basic
+    @Column(name = "person_id")
+    private Long personId;
+
+    @Basic
+    @Column(name = "task_date")
     private Date taskDate;
 
-    @Id
-    @Column(name = "EXEC_GUID")
-    public int getExecGuid() {
+    public Long getExecGuid() {
         return execGuid;
     }
 
-    public void setExecGuid(int execGuid) {
+    public void setExecGuid(Long execGuid) {
         this.execGuid = execGuid;
     }
 
-    @Basic
-    @Column(name = "TASK_DATE")
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public Long getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(Long personId) {
+        this.personId = personId;
+    }
+
     public Date getTaskDate() {
         return taskDate;
     }
@@ -35,11 +60,11 @@ public class ExecutorsEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ExecutorsEntity that = (ExecutorsEntity) o;
-        return execGuid == that.execGuid && Objects.equals(taskDate, that.taskDate);
+        return Objects.equals(execGuid, that.execGuid) && Objects.equals(taskId, that.taskId) && Objects.equals(personId, that.personId) && Objects.equals(taskDate, that.taskDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(execGuid, taskDate);
+        return Objects.hash(execGuid, taskId, personId, taskDate);
     }
 }

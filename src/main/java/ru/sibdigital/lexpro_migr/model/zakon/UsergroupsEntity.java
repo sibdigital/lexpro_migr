@@ -1,24 +1,45 @@
 package ru.sibdigital.lexpro_migr.model.zakon;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "USERGROUPS", schema = "", catalog = "")
+@Table(name = "usergroups")
 public class UsergroupsEntity {
-    private int usergroupsGuid;
-
     @Id
-    @Column(name = "USERGROUPS_GUID")
-    public int getUsergroupsGuid() {
+    @Column(name = "usergroups_guid")
+    private Long usergroupsGuid;
+
+    @Basic
+    @Column(name = "login")
+    private String login;
+
+    @Basic
+    @Column(name = "rgroup")
+    private String rgroup;
+
+    public Long getUsergroupsGuid() {
         return usergroupsGuid;
     }
 
-    public void setUsergroupsGuid(int usergroupsGuid) {
+    public void setUsergroupsGuid(Long usergroupsGuid) {
         this.usergroupsGuid = usergroupsGuid;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getRgroup() {
+        return rgroup;
+    }
+
+    public void setRgroup(String rgroup) {
+        this.rgroup = rgroup;
     }
 
     @Override
@@ -26,11 +47,11 @@ public class UsergroupsEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UsergroupsEntity that = (UsergroupsEntity) o;
-        return usergroupsGuid == that.usergroupsGuid;
+        return Objects.equals(usergroupsGuid, that.usergroupsGuid) && Objects.equals(login, that.login) && Objects.equals(rgroup, that.rgroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(usergroupsGuid);
+        return Objects.hash(usergroupsGuid, login, rgroup);
     }
 }

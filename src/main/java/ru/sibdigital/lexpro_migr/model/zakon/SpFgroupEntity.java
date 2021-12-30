@@ -4,25 +4,32 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "SP_FGROUP", schema = "", catalog = "")
+@Table(name = "sp_fgroup")
 public class SpFgroupEntity {
-    private int id;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "name")
     private String name;
+
+    @Basic
+    @Column(name = "short_name")
     private String shortName;
+
+    @Basic
+    @Column(name = "sort_order")
     private Short sortOrder;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "NAME")
     public String getName() {
         return name;
     }
@@ -31,8 +38,6 @@ public class SpFgroupEntity {
         this.name = name;
     }
 
-    @Basic
-    @Column(name = "SHORT_NAME")
     public String getShortName() {
         return shortName;
     }
@@ -41,8 +46,6 @@ public class SpFgroupEntity {
         this.shortName = shortName;
     }
 
-    @Basic
-    @Column(name = "SORT_ORDER")
     public Short getSortOrder() {
         return sortOrder;
     }

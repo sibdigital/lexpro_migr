@@ -19,7 +19,7 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 public class FBZakonPersistenceJPAConfig {
-    private String driver = "org.postgresql.Driver";
+    private String driver = "org.firebirdsql.jdbc.FirebirdDriver";
 
     @Value("${spring.fb-datasource.url}")
     private String bdUrl;

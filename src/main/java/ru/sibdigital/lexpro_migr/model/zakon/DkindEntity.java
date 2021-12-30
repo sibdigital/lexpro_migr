@@ -7,22 +7,26 @@ import java.util.Objects;
 @Entity
 @Table(name = "dkind")
 public class DkindEntity{
-    private int id;
-    private String name;
-    private String name2;
-
     @Id
     @Column(name = "id")
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    private Long id;
 
     @Basic
     @Column(name = "name")
+    private String name;
+
+    @Basic
+    @Column(name = "name2")
+    private String name2;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
@@ -31,8 +35,6 @@ public class DkindEntity{
         this.name = name;
     }
 
-    @Basic
-    @Column(name = "name2")
     public String getName2() {
         return name2;
     }

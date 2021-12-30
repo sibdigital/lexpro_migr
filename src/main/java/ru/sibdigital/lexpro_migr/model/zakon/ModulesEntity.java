@@ -4,24 +4,28 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "MODULES", schema = "", catalog = "")
+@Table(name = "modules")
 public class ModulesEntity {
-    private int modulesGuid;
+    @Id
+    @Column(name = "modules_guid")
+    private Long modulesGuid;
+
+    @Basic
+    @Column(name = "mod_name")
     private String modName;
+
+    @Basic
+    @Column(name = "mod_prim")
     private String modPrim;
 
-    @Id
-    @Column(name = "MODULES_GUID")
-    public int getModulesGuid() {
+    public Long getModulesGuid() {
         return modulesGuid;
     }
 
-    public void setModulesGuid(int modulesGuid) {
+    public void setModulesGuid(Long modulesGuid) {
         this.modulesGuid = modulesGuid;
     }
 
-    @Basic
-    @Column(name = "MOD_NAME")
     public String getModName() {
         return modName;
     }
@@ -30,8 +34,6 @@ public class ModulesEntity {
         this.modName = modName;
     }
 
-    @Basic
-    @Column(name = "MOD_PRIM")
     public String getModPrim() {
         return modPrim;
     }

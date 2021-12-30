@@ -4,23 +4,24 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "SP_FKIND", schema = "", catalog = "")
+@Table(name = "sp_fkind")
 public class SpFkindEntity {
-    private int id;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "name")
     private String name;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "NAME")
     public String getName() {
         return name;
     }

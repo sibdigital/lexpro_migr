@@ -6,62 +6,200 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "DOCUMS", schema = "", catalog = "")
+@Table(name = "docums")
 public class DocumsEntity {
-    private int id;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "ddate")
     private Date ddate;
+
+    @Basic
+    @Column(name = "reg_num")
     private String regNum;
+
+    @Basic
+    @Column(name = "zakon_num")
     private String zakonNum;
+
+    @Basic
+    @Column(name = "reg_date")
     private Date regDate;
+
+    @Basic
+    @Column(name = "descr")
     private String descr;
+
+    @Basic
+    @Column(name = "zak_osnova")
     private String zakOsnova;
+
+    @Basic
+    @Column(name = "dkind_id")
+    private Long dkindId;
+
+    @Basic
+    @Column(name = "subject_id")
+    private Long subjectId;
+
+    @Basic
+    @Column(name = "dokladchik_id")
+    private Long dokladchikId;
+
+    @Basic
+    @Column(name = "otvetstv_komitet_id")
+    private Long otvetstvKomitetId;
+
+    @Basic
+    @Column(name = "otvetstv_person_id")
+    private Long otvetstvPersonId;
+
+    @Basic
+    @Column(name = "povest_date")
     private Date povestDate;
+
+    @Basic
+    @Column(name = "control_date")
     private Date controlDate;
+
+    @Basic
+    @Column(name = "date_deputat")
     private Date dateDeputat;
+
+    @Basic
+    @Column(name = "date_prez")
     private Date datePrez;
+
+    @Basic
+    @Column(name = "date_gu")
     private Date dateGu;
+
+    @Basic
+    @Column(name = "date_prokuror")
     private Date dateProkuror;
+
+    @Basic
+    @Column(name = "date_pu_z")
     private Date datePuZ;
+
+    @Basic
+    @Column(name = "date_pu_p")
     private Date datePuP;
+
+    @Basic
+    @Column(name = "date_pu_p2")
     private Date datePuP2;
+
+    @Basic
+    @Column(name = "date_pu_2ch")
     private Date datePu2Ch;
+
+    @Basic
+    @Column(name = "date_pu_t")
     private Date datePuT;
+
+    @Basic
+    @Column(name = "date_deputat_prim")
     private String dateDeputatPrim;
+
+    @Basic
+    @Column(name = "date_prez_prim")
     private String datePrezPrim;
+
+    @Basic
+    @Column(name = "date_gu_prim")
     private String dateGuPrim;
+
+    @Basic
+    @Column(name = "date_prokuror_prim")
     private String dateProkurorPrim;
+
+    @Basic
+    @Column(name = "date_pu_z_prim")
     private String datePuZPrim;
+
+    @Basic
+    @Column(name = "date_pu_p_prim")
     private String datePuPPrim;
+
+    @Basic
+    @Column(name = "date_pu_p2_prim")
     private String datePuP2Prim;
+
+    @Basic
+    @Column(name = "date_pu_2ch_prim")
     private String datePu2ChPrim;
+
+    @Basic
+    @Column(name = "date_pu_t_prim")
     private String datePuTPrim;
+
+    @Basic
+    @Column(name = "status")
     private String status;
+
+    @Basic
+    @Column(name = "prezident_podpis_date")
     private Date prezidentPodpisDate;
+
+    @Basic
+    @Column(name = "rkk_ready")
     private String rkkReady;
+
+    @Basic
+    @Column(name = "sessia_num")
     private String sessiaNum;
+
+    @Basic
+    @Column(name = "sessia_date")
     private Date sessiaDate;
+
+    @Basic
+    @Column(name = "color")
     private String color;
+
+    @Basic
+    @Column(name = "npp")
     private String npp;
+
+    @Basic
+    @Column(name = "prim")
     private String prim;
+
+    @Basic
+    @Column(name = "edit_date")
     private Timestamp editDate;
+
+    @Basic
+    @Column(name = "editor_login")
     private String editorLogin;
+
+    @Basic
+    @Column(name = "flag_deleted")
     private String flagDeleted;
+
+    @Basic
+    @Column(name = "flag_downloaded")
     private String flagDownloaded;
+
+    @Basic
+    @Column(name = "timestamp_downloaded")
     private Timestamp timestampDownloaded;
+
+    @Basic
+    @Column(name = "opublik_date")
     private Date opublikDate;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "DDATE")
     public Date getDdate() {
         return ddate;
     }
@@ -70,8 +208,6 @@ public class DocumsEntity {
         this.ddate = ddate;
     }
 
-    @Basic
-    @Column(name = "REG_NUM")
     public String getRegNum() {
         return regNum;
     }
@@ -80,8 +216,6 @@ public class DocumsEntity {
         this.regNum = regNum;
     }
 
-    @Basic
-    @Column(name = "ZAKON_NUM")
     public String getZakonNum() {
         return zakonNum;
     }
@@ -90,8 +224,6 @@ public class DocumsEntity {
         this.zakonNum = zakonNum;
     }
 
-    @Basic
-    @Column(name = "REG_DATE")
     public Date getRegDate() {
         return regDate;
     }
@@ -100,8 +232,6 @@ public class DocumsEntity {
         this.regDate = regDate;
     }
 
-    @Basic
-    @Column(name = "DESCR")
     public String getDescr() {
         return descr;
     }
@@ -110,8 +240,6 @@ public class DocumsEntity {
         this.descr = descr;
     }
 
-    @Basic
-    @Column(name = "ZAK_OSNOVA")
     public String getZakOsnova() {
         return zakOsnova;
     }
@@ -120,8 +248,46 @@ public class DocumsEntity {
         this.zakOsnova = zakOsnova;
     }
 
-    @Basic
-    @Column(name = "POVEST_DATE")
+    public Long getDkindId() {
+        return dkindId;
+    }
+
+    public void setDkindId(Long dkindId) {
+        this.dkindId = dkindId;
+    }
+
+    public Long getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(Long subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public Long getDokladchikId() {
+        return dokladchikId;
+    }
+
+    public void setDokladchikId(Long dokladchikId) {
+        this.dokladchikId = dokladchikId;
+    }
+
+    public Long getOtvetstvKomitetId() {
+        return otvetstvKomitetId;
+    }
+
+    public void setOtvetstvKomitetId(Long otvetstvKomitetId) {
+        this.otvetstvKomitetId = otvetstvKomitetId;
+    }
+
+    public Long getOtvetstvPersonId() {
+        return otvetstvPersonId;
+    }
+
+    public void setOtvetstvPersonId(Long otvetstvPersonId) {
+        this.otvetstvPersonId = otvetstvPersonId;
+    }
+
     public Date getPovestDate() {
         return povestDate;
     }
@@ -130,8 +296,6 @@ public class DocumsEntity {
         this.povestDate = povestDate;
     }
 
-    @Basic
-    @Column(name = "CONTROL_DATE")
     public Date getControlDate() {
         return controlDate;
     }
@@ -140,8 +304,6 @@ public class DocumsEntity {
         this.controlDate = controlDate;
     }
 
-    @Basic
-    @Column(name = "DATE_DEPUTAT")
     public Date getDateDeputat() {
         return dateDeputat;
     }
@@ -150,8 +312,6 @@ public class DocumsEntity {
         this.dateDeputat = dateDeputat;
     }
 
-    @Basic
-    @Column(name = "DATE_PREZ")
     public Date getDatePrez() {
         return datePrez;
     }
@@ -160,8 +320,6 @@ public class DocumsEntity {
         this.datePrez = datePrez;
     }
 
-    @Basic
-    @Column(name = "DATE_GU")
     public Date getDateGu() {
         return dateGu;
     }
@@ -170,8 +328,6 @@ public class DocumsEntity {
         this.dateGu = dateGu;
     }
 
-    @Basic
-    @Column(name = "DATE_PROKUROR")
     public Date getDateProkuror() {
         return dateProkuror;
     }
@@ -180,8 +336,6 @@ public class DocumsEntity {
         this.dateProkuror = dateProkuror;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_Z")
     public Date getDatePuZ() {
         return datePuZ;
     }
@@ -190,8 +344,6 @@ public class DocumsEntity {
         this.datePuZ = datePuZ;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_P")
     public Date getDatePuP() {
         return datePuP;
     }
@@ -200,8 +352,6 @@ public class DocumsEntity {
         this.datePuP = datePuP;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_P2")
     public Date getDatePuP2() {
         return datePuP2;
     }
@@ -210,8 +360,6 @@ public class DocumsEntity {
         this.datePuP2 = datePuP2;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_2CH")
     public Date getDatePu2Ch() {
         return datePu2Ch;
     }
@@ -220,8 +368,6 @@ public class DocumsEntity {
         this.datePu2Ch = datePu2Ch;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_T")
     public Date getDatePuT() {
         return datePuT;
     }
@@ -230,8 +376,6 @@ public class DocumsEntity {
         this.datePuT = datePuT;
     }
 
-    @Basic
-    @Column(name = "DATE_DEPUTAT_PRIM")
     public String getDateDeputatPrim() {
         return dateDeputatPrim;
     }
@@ -240,8 +384,6 @@ public class DocumsEntity {
         this.dateDeputatPrim = dateDeputatPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PREZ_PRIM")
     public String getDatePrezPrim() {
         return datePrezPrim;
     }
@@ -250,8 +392,6 @@ public class DocumsEntity {
         this.datePrezPrim = datePrezPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_GU_PRIM")
     public String getDateGuPrim() {
         return dateGuPrim;
     }
@@ -260,8 +400,6 @@ public class DocumsEntity {
         this.dateGuPrim = dateGuPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PROKUROR_PRIM")
     public String getDateProkurorPrim() {
         return dateProkurorPrim;
     }
@@ -270,8 +408,6 @@ public class DocumsEntity {
         this.dateProkurorPrim = dateProkurorPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_Z_PRIM")
     public String getDatePuZPrim() {
         return datePuZPrim;
     }
@@ -280,8 +416,6 @@ public class DocumsEntity {
         this.datePuZPrim = datePuZPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_P_PRIM")
     public String getDatePuPPrim() {
         return datePuPPrim;
     }
@@ -290,8 +424,6 @@ public class DocumsEntity {
         this.datePuPPrim = datePuPPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_P2_PRIM")
     public String getDatePuP2Prim() {
         return datePuP2Prim;
     }
@@ -300,8 +432,6 @@ public class DocumsEntity {
         this.datePuP2Prim = datePuP2Prim;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_2CH_PRIM")
     public String getDatePu2ChPrim() {
         return datePu2ChPrim;
     }
@@ -310,8 +440,6 @@ public class DocumsEntity {
         this.datePu2ChPrim = datePu2ChPrim;
     }
 
-    @Basic
-    @Column(name = "DATE_PU_T_PRIM")
     public String getDatePuTPrim() {
         return datePuTPrim;
     }
@@ -320,8 +448,6 @@ public class DocumsEntity {
         this.datePuTPrim = datePuTPrim;
     }
 
-    @Basic
-    @Column(name = "STATUS")
     public String getStatus() {
         return status;
     }
@@ -330,8 +456,6 @@ public class DocumsEntity {
         this.status = status;
     }
 
-    @Basic
-    @Column(name = "PREZIDENT_PODPIS_DATE")
     public Date getPrezidentPodpisDate() {
         return prezidentPodpisDate;
     }
@@ -340,8 +464,6 @@ public class DocumsEntity {
         this.prezidentPodpisDate = prezidentPodpisDate;
     }
 
-    @Basic
-    @Column(name = "RKK_READY")
     public String getRkkReady() {
         return rkkReady;
     }
@@ -350,8 +472,6 @@ public class DocumsEntity {
         this.rkkReady = rkkReady;
     }
 
-    @Basic
-    @Column(name = "SESSIA_NUM")
     public String getSessiaNum() {
         return sessiaNum;
     }
@@ -360,8 +480,6 @@ public class DocumsEntity {
         this.sessiaNum = sessiaNum;
     }
 
-    @Basic
-    @Column(name = "SESSIA_DATE")
     public Date getSessiaDate() {
         return sessiaDate;
     }
@@ -370,8 +488,6 @@ public class DocumsEntity {
         this.sessiaDate = sessiaDate;
     }
 
-    @Basic
-    @Column(name = "COLOR")
     public String getColor() {
         return color;
     }
@@ -380,8 +496,6 @@ public class DocumsEntity {
         this.color = color;
     }
 
-    @Basic
-    @Column(name = "NPP")
     public String getNpp() {
         return npp;
     }
@@ -390,8 +504,6 @@ public class DocumsEntity {
         this.npp = npp;
     }
 
-    @Basic
-    @Column(name = "PRIM")
     public String getPrim() {
         return prim;
     }
@@ -400,8 +512,6 @@ public class DocumsEntity {
         this.prim = prim;
     }
 
-    @Basic
-    @Column(name = "EDIT_DATE")
     public Timestamp getEditDate() {
         return editDate;
     }
@@ -410,8 +520,6 @@ public class DocumsEntity {
         this.editDate = editDate;
     }
 
-    @Basic
-    @Column(name = "EDITOR_LOGIN")
     public String getEditorLogin() {
         return editorLogin;
     }
@@ -420,8 +528,6 @@ public class DocumsEntity {
         this.editorLogin = editorLogin;
     }
 
-    @Basic
-    @Column(name = "FLAG_DELETED")
     public String getFlagDeleted() {
         return flagDeleted;
     }
@@ -430,8 +536,6 @@ public class DocumsEntity {
         this.flagDeleted = flagDeleted;
     }
 
-    @Basic
-    @Column(name = "FLAG_DOWNLOADED")
     public String getFlagDownloaded() {
         return flagDownloaded;
     }
@@ -440,8 +544,6 @@ public class DocumsEntity {
         this.flagDownloaded = flagDownloaded;
     }
 
-    @Basic
-    @Column(name = "TIMESTAMP_DOWNLOADED")
     public Timestamp getTimestampDownloaded() {
         return timestampDownloaded;
     }
@@ -450,8 +552,6 @@ public class DocumsEntity {
         this.timestampDownloaded = timestampDownloaded;
     }
 
-    @Basic
-    @Column(name = "OPUBLIK_DATE")
     public Date getOpublikDate() {
         return opublikDate;
     }
@@ -465,11 +565,11 @@ public class DocumsEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DocumsEntity that = (DocumsEntity) o;
-        return id == that.id && Objects.equals(ddate, that.ddate) && Objects.equals(regNum, that.regNum) && Objects.equals(zakonNum, that.zakonNum) && Objects.equals(regDate, that.regDate) && Objects.equals(descr, that.descr) && Objects.equals(zakOsnova, that.zakOsnova) && Objects.equals(povestDate, that.povestDate) && Objects.equals(controlDate, that.controlDate) && Objects.equals(dateDeputat, that.dateDeputat) && Objects.equals(datePrez, that.datePrez) && Objects.equals(dateGu, that.dateGu) && Objects.equals(dateProkuror, that.dateProkuror) && Objects.equals(datePuZ, that.datePuZ) && Objects.equals(datePuP, that.datePuP) && Objects.equals(datePuP2, that.datePuP2) && Objects.equals(datePu2Ch, that.datePu2Ch) && Objects.equals(datePuT, that.datePuT) && Objects.equals(dateDeputatPrim, that.dateDeputatPrim) && Objects.equals(datePrezPrim, that.datePrezPrim) && Objects.equals(dateGuPrim, that.dateGuPrim) && Objects.equals(dateProkurorPrim, that.dateProkurorPrim) && Objects.equals(datePuZPrim, that.datePuZPrim) && Objects.equals(datePuPPrim, that.datePuPPrim) && Objects.equals(datePuP2Prim, that.datePuP2Prim) && Objects.equals(datePu2ChPrim, that.datePu2ChPrim) && Objects.equals(datePuTPrim, that.datePuTPrim) && Objects.equals(status, that.status) && Objects.equals(prezidentPodpisDate, that.prezidentPodpisDate) && Objects.equals(rkkReady, that.rkkReady) && Objects.equals(sessiaNum, that.sessiaNum) && Objects.equals(sessiaDate, that.sessiaDate) && Objects.equals(color, that.color) && Objects.equals(npp, that.npp) && Objects.equals(prim, that.prim) && Objects.equals(editDate, that.editDate) && Objects.equals(editorLogin, that.editorLogin) && Objects.equals(flagDeleted, that.flagDeleted) && Objects.equals(flagDownloaded, that.flagDownloaded) && Objects.equals(timestampDownloaded, that.timestampDownloaded) && Objects.equals(opublikDate, that.opublikDate);
+        return Objects.equals(id, that.id) && Objects.equals(ddate, that.ddate) && Objects.equals(regNum, that.regNum) && Objects.equals(zakonNum, that.zakonNum) && Objects.equals(regDate, that.regDate) && Objects.equals(descr, that.descr) && Objects.equals(zakOsnova, that.zakOsnova) && Objects.equals(dkindId, that.dkindId) && Objects.equals(subjectId, that.subjectId) && Objects.equals(dokladchikId, that.dokladchikId) && Objects.equals(otvetstvKomitetId, that.otvetstvKomitetId) && Objects.equals(otvetstvPersonId, that.otvetstvPersonId) && Objects.equals(povestDate, that.povestDate) && Objects.equals(controlDate, that.controlDate) && Objects.equals(dateDeputat, that.dateDeputat) && Objects.equals(datePrez, that.datePrez) && Objects.equals(dateGu, that.dateGu) && Objects.equals(dateProkuror, that.dateProkuror) && Objects.equals(datePuZ, that.datePuZ) && Objects.equals(datePuP, that.datePuP) && Objects.equals(datePuP2, that.datePuP2) && Objects.equals(datePu2Ch, that.datePu2Ch) && Objects.equals(datePuT, that.datePuT) && Objects.equals(dateDeputatPrim, that.dateDeputatPrim) && Objects.equals(datePrezPrim, that.datePrezPrim) && Objects.equals(dateGuPrim, that.dateGuPrim) && Objects.equals(dateProkurorPrim, that.dateProkurorPrim) && Objects.equals(datePuZPrim, that.datePuZPrim) && Objects.equals(datePuPPrim, that.datePuPPrim) && Objects.equals(datePuP2Prim, that.datePuP2Prim) && Objects.equals(datePu2ChPrim, that.datePu2ChPrim) && Objects.equals(datePuTPrim, that.datePuTPrim) && Objects.equals(status, that.status) && Objects.equals(prezidentPodpisDate, that.prezidentPodpisDate) && Objects.equals(rkkReady, that.rkkReady) && Objects.equals(sessiaNum, that.sessiaNum) && Objects.equals(sessiaDate, that.sessiaDate) && Objects.equals(color, that.color) && Objects.equals(npp, that.npp) && Objects.equals(prim, that.prim) && Objects.equals(editDate, that.editDate) && Objects.equals(editorLogin, that.editorLogin) && Objects.equals(flagDeleted, that.flagDeleted) && Objects.equals(flagDownloaded, that.flagDownloaded) && Objects.equals(timestampDownloaded, that.timestampDownloaded) && Objects.equals(opublikDate, that.opublikDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ddate, regNum, zakonNum, regDate, descr, zakOsnova, povestDate, controlDate, dateDeputat, datePrez, dateGu, dateProkuror, datePuZ, datePuP, datePuP2, datePu2Ch, datePuT, dateDeputatPrim, datePrezPrim, dateGuPrim, dateProkurorPrim, datePuZPrim, datePuPPrim, datePuP2Prim, datePu2ChPrim, datePuTPrim, status, prezidentPodpisDate, rkkReady, sessiaNum, sessiaDate, color, npp, prim, editDate, editorLogin, flagDeleted, flagDownloaded, timestampDownloaded, opublikDate);
+        return Objects.hash(id, ddate, regNum, zakonNum, regDate, descr, zakOsnova, dkindId, subjectId, dokladchikId, otvetstvKomitetId, otvetstvPersonId, povestDate, controlDate, dateDeputat, datePrez, dateGu, dateProkuror, datePuZ, datePuP, datePuP2, datePu2Ch, datePuT, dateDeputatPrim, datePrezPrim, dateGuPrim, dateProkurorPrim, datePuZPrim, datePuPPrim, datePuP2Prim, datePu2ChPrim, datePuTPrim, status, prezidentPodpisDate, rkkReady, sessiaNum, sessiaDate, color, npp, prim, editDate, editorLogin, flagDeleted, flagDownloaded, timestampDownloaded, opublikDate);
     }
 }

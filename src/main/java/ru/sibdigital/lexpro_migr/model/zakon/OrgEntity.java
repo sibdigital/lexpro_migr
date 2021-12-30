@@ -4,26 +4,69 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "ORG", schema = "", catalog = "")
+@Table(name = "org")
 public class OrgEntity {
+    @Id
+    @Column(name = "id")
     private Long id;
+
+    @Basic
+    @Column(name = "name")
     private String name;
+
+    @Basic
+    @Column(name = "short_name")
     private String shortName;
+
+    @Basic
+    @Column(name = "person_id")
     private Long personId;
+
+    @Basic
+    @Column(name = "postindx")
     private String postindx;
+
+    @Basic
+    @Column(name = "adres")
     private String adres;
+
+    @Basic
+    @Column(name = "phone")
     private String phone;
+
+    @Basic
+    @Column(name = "email")
     private String email;
+
+    @Basic
+    @Column(name = "flag_komitet")
     private String flagKomitet;
+
+    @Basic
+    @Column(name = "flag_subject")
     private String flagSubject;
+
+    @Basic
+    @Column(name = "flag_org")
     private String flagOrg;
+
+    @Basic
+    @Column(name = "flag_dep")
     private String flagDep;
+
+    @Basic
+    @Column(name = "flag_rep")
     private Short flagRep;
+
+    @Basic
+    @Column(name = "flag_sort")
     private Short flagSort;
+
+    @Basic
+    @Column(name = "name2")
     private String name2;
 
-    @Id
-    @Column(name = "ID")
+
     public Long getId() {
         return id;
     }
@@ -32,8 +75,6 @@ public class OrgEntity {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "NAME")
     public String getName() {
         return name;
     }
@@ -42,8 +83,6 @@ public class OrgEntity {
         this.name = name;
     }
 
-    @Basic
-    @Column(name = "SHORT_NAME")
     public String getShortName() {
         return shortName;
     }
@@ -52,8 +91,6 @@ public class OrgEntity {
         this.shortName = shortName;
     }
 
-    @Basic
-    @Column(name = "person_id")
     public Long getPersonId() {
         return personId;
     }
@@ -62,8 +99,6 @@ public class OrgEntity {
         this.personId = personId;
     }
 
-    @Basic
-    @Column(name = "POSTINDX")
     public String getPostindx() {
         return postindx;
     }
@@ -72,8 +107,6 @@ public class OrgEntity {
         this.postindx = postindx;
     }
 
-    @Basic
-    @Column(name = "ADRES")
     public String getAdres() {
         return adres;
     }
@@ -82,8 +115,6 @@ public class OrgEntity {
         this.adres = adres;
     }
 
-    @Basic
-    @Column(name = "PHONE")
     public String getPhone() {
         return phone;
     }
@@ -92,8 +123,6 @@ public class OrgEntity {
         this.phone = phone;
     }
 
-    @Basic
-    @Column(name = "EMAIL")
     public String getEmail() {
         return email;
     }
@@ -102,8 +131,6 @@ public class OrgEntity {
         this.email = email;
     }
 
-    @Basic
-    @Column(name = "FLAG_KOMITET")
     public String getFlagKomitet() {
         return flagKomitet;
     }
@@ -112,8 +139,6 @@ public class OrgEntity {
         this.flagKomitet = flagKomitet;
     }
 
-    @Basic
-    @Column(name = "FLAG_SUBJECT")
     public String getFlagSubject() {
         return flagSubject;
     }
@@ -122,8 +147,6 @@ public class OrgEntity {
         this.flagSubject = flagSubject;
     }
 
-    @Basic
-    @Column(name = "FLAG_ORG")
     public String getFlagOrg() {
         return flagOrg;
     }
@@ -132,8 +155,6 @@ public class OrgEntity {
         this.flagOrg = flagOrg;
     }
 
-    @Basic
-    @Column(name = "FLAG_DEP")
     public String getFlagDep() {
         return flagDep;
     }
@@ -142,8 +163,6 @@ public class OrgEntity {
         this.flagDep = flagDep;
     }
 
-    @Basic
-    @Column(name = "FLAG_REP")
     public Short getFlagRep() {
         return flagRep;
     }
@@ -152,8 +171,6 @@ public class OrgEntity {
         this.flagRep = flagRep;
     }
 
-    @Basic
-    @Column(name = "FLAG_SORT")
     public Short getFlagSort() {
         return flagSort;
     }
@@ -162,8 +179,6 @@ public class OrgEntity {
         this.flagSort = flagSort;
     }
 
-    @Basic
-    @Column(name = "NAME2")
     public String getName2() {
         return name2;
     }

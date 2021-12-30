@@ -3,13 +3,15 @@ package ru.sibdigital.lexpro_migr.service;
 import com.google.common.base.CaseFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.mapping.model.CamelCaseSplittingFieldNamingStrategy;
 import org.springframework.stereotype.Service;
-import ru.sibdigital.lexpro_migr.model.zakon.DkindEntity;
+import ru.sibdigital.lexpro_migr.utils.ClassUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.util.ArrayList;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 
 @Service
@@ -24,18 +26,30 @@ public class ExportFbService {
 
     private final String modelPackage = "ru.sibdigital.lexpro_migr.model.zakon";
 
-    public List<?> getEntities(String dir, String tableName) {
-        try {
-            String filePath = fileService.findFileBySubstrName(dir, "export_" + tableName + ".sql");
-            String className = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName) + "Entity";
-            String queryString = fileService.getStringFromFile(dir + "/" + filePath);
-            Query query = fbZakonEntityManager.createNativeQuery(queryString, Class.forName(modelPackage + "." + className));
-            List<?> entities =  query.getResultList();
-            return entities;
-        } catch (ClassNotFoundException classNotFoundException) {
-            classNotFoundException.printStackTrace();
-            return new ArrayList<>();
-        }
+    public List<?> getEntities(String dir, String tableName, Long startId, Long endId) {
+        String filePath = fileService.findFileBySubstrName(dir, "export_" + tableName + ".sql");
+        Class clazz = ClassUtils.getClassByTableName(modelPackage, tableName);
 
+        String queryString = fileService.getStringFromFile(dir + "/" + filePath);
+        Query query = fbZakonEntityManager.createNativeQuery(queryString, clazz);
+        query.setParameter("start", startId);
+        query.setParameter("end", endId);
+        return query.getResultList();
     }
+
+    public Long getMaxIdInTable(String tableName) {
+        Class clazz = ClassUtils.getClassByTableName(modelPackage, tableName);
+        String pkColumnName = ClassUtils.getPKColumnName(clazz);
+        pkColumnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, pkColumnName);
+
+        CriteriaBuilder criteriaBuilder = fbZakonEntityManager.getCriteriaBuilder();
+        CriteriaQuery query = criteriaBuilder.createQuery();
+        Root<?> root = query.from(clazz);
+        query.select(criteriaBuilder.max(root.<Number>get(pkColumnName)));
+        TypedQuery<Long> q = fbZakonEntityManager.createQuery(query);
+        return q.getSingleResult();
+    }
+
+
+
 }

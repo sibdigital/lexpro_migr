@@ -5,28 +5,49 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "USERS", schema = "", catalog = "")
+@Table(name = "users")
 public class UsersEntity {
-    private int usersGuid;
+    @Id
+    @Column(name = "users_guid")
+    private Long usersGuid;
+
+    @Basic
+    @Column(name = "login")
     private String login;
+
+    @Basic
+    @Column(name = "person_id")
+    private Long personId;
+
+    @Basic
+    @Column(name = "passdata")
     private String passdata;
+
+    @Basic
+    @Column(name = "flashserial")
     private String flashserial;
+
+    @Basic
+    @Column(name = "dns_name")
     private String dnsName;
+
+    @Basic
+    @Column(name = "enter_mode")
     private String enterMode;
+
+    @Basic
+    @Column(name = "enter_timestamp")
     private Timestamp enterTimestamp;
 
-    @Id
-    @Column(name = "USERS_GUID")
-    public int getUsersGuid() {
+
+    public Long getUsersGuid() {
         return usersGuid;
     }
 
-    public void setUsersGuid(int usersGuid) {
+    public void setUsersGuid(Long usersGuid) {
         this.usersGuid = usersGuid;
     }
 
-    @Basic
-    @Column(name = "LOGIN")
     public String getLogin() {
         return login;
     }
@@ -35,8 +56,14 @@ public class UsersEntity {
         this.login = login;
     }
 
-    @Basic
-    @Column(name = "PASSDATA")
+    public Long getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(Long personId) {
+        this.personId = personId;
+    }
+
     public String getPassdata() {
         return passdata;
     }
@@ -45,8 +72,6 @@ public class UsersEntity {
         this.passdata = passdata;
     }
 
-    @Basic
-    @Column(name = "FLASHSERIAL")
     public String getFlashserial() {
         return flashserial;
     }
@@ -55,8 +80,6 @@ public class UsersEntity {
         this.flashserial = flashserial;
     }
 
-    @Basic
-    @Column(name = "DNS_NAME")
     public String getDnsName() {
         return dnsName;
     }
@@ -65,8 +88,6 @@ public class UsersEntity {
         this.dnsName = dnsName;
     }
 
-    @Basic
-    @Column(name = "ENTER_MODE")
     public String getEnterMode() {
         return enterMode;
     }
@@ -75,8 +96,6 @@ public class UsersEntity {
         this.enterMode = enterMode;
     }
 
-    @Basic
-    @Column(name = "ENTER_TIMESTAMP")
     public Timestamp getEnterTimestamp() {
         return enterTimestamp;
     }
@@ -90,11 +109,11 @@ public class UsersEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UsersEntity that = (UsersEntity) o;
-        return usersGuid == that.usersGuid && Objects.equals(login, that.login) && Objects.equals(passdata, that.passdata) && Objects.equals(flashserial, that.flashserial) && Objects.equals(dnsName, that.dnsName) && Objects.equals(enterMode, that.enterMode) && Objects.equals(enterTimestamp, that.enterTimestamp);
+        return Objects.equals(usersGuid, that.usersGuid) && Objects.equals(login, that.login) && Objects.equals(personId, that.personId) && Objects.equals(passdata, that.passdata) && Objects.equals(flashserial, that.flashserial) && Objects.equals(dnsName, that.dnsName) && Objects.equals(enterMode, that.enterMode) && Objects.equals(enterTimestamp, that.enterTimestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(usersGuid, login, passdata, flashserial, dnsName, enterMode, enterTimestamp);
+        return Objects.hash(usersGuid, login, personId, passdata, flashserial, dnsName, enterMode, enterTimestamp);
     }
 }

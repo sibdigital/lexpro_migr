@@ -5,24 +5,38 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "MESSAGES", schema = "", catalog = "")
+@Table(name = "messages")
 public class MessagesEntity {
-    private int id;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "text")
     private String text;
+
+    @Basic
+    @Column(name = "sender_id")
+    private Long senderId;
+
+    @Basic
+    @Column(name = "reciever_id")
+    private Long recieverId;
+
+    @Basic
+    @Column(name = "message_date_time")
     private Timestamp messageDateTime;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "TEXT")
+
     public String getText() {
         return text;
     }
@@ -31,8 +45,23 @@ public class MessagesEntity {
         this.text = text;
     }
 
-    @Basic
-    @Column(name = "MESSAGE_DATE_TIME")
+
+    public Long getSenderId() {
+        return senderId;
+    }
+
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
+    }
+
+    public Long getRecieverId() {
+        return recieverId;
+    }
+
+    public void setRecieverId(Long recieverId) {
+        this.recieverId = recieverId;
+    }
+
     public Timestamp getMessageDateTime() {
         return messageDateTime;
     }
@@ -46,11 +75,11 @@ public class MessagesEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MessagesEntity that = (MessagesEntity) o;
-        return id == that.id && Objects.equals(text, that.text) && Objects.equals(messageDateTime, that.messageDateTime);
+        return Objects.equals(id, that.id) && Objects.equals(text, that.text) && Objects.equals(senderId, that.senderId) && Objects.equals(recieverId, that.recieverId) && Objects.equals(messageDateTime, that.messageDateTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, text, messageDateTime);
+        return Objects.hash(id, text, senderId, recieverId, messageDateTime);
     }
 }

@@ -4,24 +4,28 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "SP_DOLJNOST")
+@Table(name = "sp_doljnost")
 public class SpDoljnostEntity {
-    private int id;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "name")
     private String name;
+
+    @Basic
+    @Column(name = "flag_seealltasks")
     private String flagSeealltasks;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "NAME")
     public String getName() {
         return name;
     }
@@ -30,8 +34,6 @@ public class SpDoljnostEntity {
         this.name = name;
     }
 
-    @Basic
-    @Column(name = "FLAG_SEEALLTASKS")
     public String getFlagSeealltasks() {
         return flagSeealltasks;
     }
@@ -45,7 +47,7 @@ public class SpDoljnostEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SpDoljnostEntity that = (SpDoljnostEntity) o;
-        return id == that.id && Objects.equals(name, that.name) && Objects.equals(flagSeealltasks, that.flagSeealltasks);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(flagSeealltasks, that.flagSeealltasks);
     }
 
     @Override

@@ -1,24 +1,45 @@
 package ru.sibdigital.lexpro_migr.model.zakon;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "GROUPMODULES", schema = "", catalog = "")
+@Table(name = "groupmodules")
 public class GroupmodulesEntity {
-    private int groupmodulesGuid;
-
     @Id
-    @Column(name = "GROUPMODULES_GUID")
-    public int getGroupmodulesGuid() {
+    @Column(name = "groupmodules_guid")
+    private Long groupmodulesGuid;
+
+    @Basic
+    @Column(name = "groups_guid")
+    private Long groupsGuid;
+
+    @Basic
+    @Column(name = "modules_guid")
+    private Long modulesGuid;
+
+    public Long getGroupmodulesGuid() {
         return groupmodulesGuid;
     }
 
-    public void setGroupmodulesGuid(int groupmodulesGuid) {
+    public void setGroupmodulesGuid(Long groupmodulesGuid) {
         this.groupmodulesGuid = groupmodulesGuid;
+    }
+
+    public Long getGroupsGuid() {
+        return groupsGuid;
+    }
+
+    public void setGroupsGuid(Long groupsGuid) {
+        this.groupsGuid = groupsGuid;
+    }
+
+    public Long getModulesGuid() {
+        return modulesGuid;
+    }
+
+    public void setModulesGuid(Long modulesGuid) {
+        this.modulesGuid = modulesGuid;
     }
 
     @Override
@@ -26,11 +47,11 @@ public class GroupmodulesEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         GroupmodulesEntity that = (GroupmodulesEntity) o;
-        return groupmodulesGuid == that.groupmodulesGuid;
+        return Objects.equals(groupmodulesGuid, that.groupmodulesGuid) && Objects.equals(groupsGuid, that.groupsGuid) && Objects.equals(modulesGuid, that.modulesGuid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(groupmodulesGuid);
+        return Objects.hash(groupmodulesGuid, groupsGuid, modulesGuid);
     }
 }

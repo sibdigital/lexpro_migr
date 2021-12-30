@@ -4,24 +4,29 @@ import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "GROUPS", schema = "", catalog = "")
+@Table(name = "groups")
 public class GroupsEntity {
-    private int groupsGuid;
-    private String groupName;
-    private String groupPrim;
 
     @Id
-    @Column(name = "GROUPS_GUID")
-    public int getGroupsGuid() {
+    @Column(name = "groups_guid")
+    private Long groupsGuid;
+
+    @Basic
+    @Column(name = "group_name")
+    private String groupName;
+
+    @Basic
+    @Column(name = "group_prim")
+    private String groupPrim;
+
+    public Long getGroupsGuid() {
         return groupsGuid;
     }
 
-    public void setGroupsGuid(int groupsGuid) {
+    public void setGroupsGuid(Long groupsGuid) {
         this.groupsGuid = groupsGuid;
     }
 
-    @Basic
-    @Column(name = "GROUP_NAME")
     public String getGroupName() {
         return groupName;
     }
@@ -30,8 +35,6 @@ public class GroupsEntity {
         this.groupName = groupName;
     }
 
-    @Basic
-    @Column(name = "GROUP_PRIM")
     public String getGroupPrim() {
         return groupPrim;
     }

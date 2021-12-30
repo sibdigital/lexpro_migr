@@ -3,10 +3,7 @@ create table if not exists TASKS
     ID             INTEGER not null
         constraint PK_TASKS
             primary key,
-    DOCUM_ID       INTEGER
-        constraint FK_TASKS_DOCUMS unique
-            references DOCUMS
-                on delete cascade,
+    DOCUM_ID       INTEGER,
     FKIND_ID       INTEGER,
     DEPART_ID      INTEGER,
     WHAT2DO        VARCHAR(255),

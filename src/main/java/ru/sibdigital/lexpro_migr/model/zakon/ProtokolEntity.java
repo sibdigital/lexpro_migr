@@ -5,41 +5,64 @@ import java.sql.Timestamp;
 import java.util.Objects;
 
 @Entity
-@Table(name = "PROTOKOL", schema = "", catalog = "")
+@Table(name = "protokol")
 public class ProtokolEntity {
-    private int id;
-    private Integer documId;
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Basic
+    @Column(name = "docum_id")
+    private Long documId;
+
+    @Basic
+    @Column(name = "type")
     private String type;
+
+    @Basic
+    @Column(name = "field_name")
     private String fieldName;
+
+    @Basic
+    @Column(name = "old_value")
     private String oldValue;
+
+    @Basic
+    @Column(name = "new_value")
     private String newValue;
+
+    @Basic
+    @Column(name = "edit_date")
     private Timestamp editDate;
+
+    @Basic
+    @Column(name = "editor_login")
     private String editorLogin;
+
+    @Basic
+    @Column(name = "dns_name")
     private String dnsName;
+
+    @Basic
+    @Column(name = "enter_mode")
     private String enterMode;
 
-    @Id
-    @Column(name = "ID")
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    @Basic
-    @Column(name = "DOCUM_ID")
-    public Integer getDocumId() {
+    public Long getDocumId() {
         return documId;
     }
 
-    public void setDocumId(Integer documId) {
+    public void setDocumId(Long documId) {
         this.documId = documId;
     }
 
-    @Basic
-    @Column(name = "TYPE")
     public String getType() {
         return type;
     }
@@ -48,8 +71,6 @@ public class ProtokolEntity {
         this.type = type;
     }
 
-    @Basic
-    @Column(name = "FIELD_NAME")
     public String getFieldName() {
         return fieldName;
     }
@@ -58,8 +79,6 @@ public class ProtokolEntity {
         this.fieldName = fieldName;
     }
 
-    @Basic
-    @Column(name = "OLD_VALUE")
     public String getOldValue() {
         return oldValue;
     }
@@ -68,8 +87,6 @@ public class ProtokolEntity {
         this.oldValue = oldValue;
     }
 
-    @Basic
-    @Column(name = "NEW_VALUE")
     public String getNewValue() {
         return newValue;
     }
@@ -78,8 +95,6 @@ public class ProtokolEntity {
         this.newValue = newValue;
     }
 
-    @Basic
-    @Column(name = "EDIT_DATE")
     public Timestamp getEditDate() {
         return editDate;
     }
@@ -88,8 +103,6 @@ public class ProtokolEntity {
         this.editDate = editDate;
     }
 
-    @Basic
-    @Column(name = "EDITOR_LOGIN")
     public String getEditorLogin() {
         return editorLogin;
     }
@@ -98,8 +111,6 @@ public class ProtokolEntity {
         this.editorLogin = editorLogin;
     }
 
-    @Basic
-    @Column(name = "DNS_NAME")
     public String getDnsName() {
         return dnsName;
     }
@@ -108,8 +119,6 @@ public class ProtokolEntity {
         this.dnsName = dnsName;
     }
 
-    @Basic
-    @Column(name = "ENTER_MODE")
     public String getEnterMode() {
         return enterMode;
     }

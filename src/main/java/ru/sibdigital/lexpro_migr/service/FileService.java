@@ -16,8 +16,7 @@ public class FileService {
     ResourceLoader resourceLoader;
 
     public String getStringFromFile(String path){
-        try {
-            InputStream inputStream = resourceLoader.getResource(path).getInputStream();
+        try (InputStream inputStream = resourceLoader.getResource(path).getInputStream();) {
             String query = new BufferedReader(
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                     .lines()

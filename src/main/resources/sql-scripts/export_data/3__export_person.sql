@@ -9,4 +9,5 @@ SELECT
     CAST(CAST(PHONE as varchar(50) character set win1251) as varchar(50) character set utf8) AS PHONE,
     CAST(CAST(EMAIL as varchar(30) character set win1251) as varchar(30) character set utf8) AS EMAIL
 FROM
-    PERSON;
+    PERSON
+WHERE ID BETWEEN :start AND :end
