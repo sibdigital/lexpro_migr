@@ -1,5 +1,6 @@
 package ru.sibdigital.lexpro_migr.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ImportPsqlLexproService {
 
@@ -43,38 +46,66 @@ public class ImportPsqlLexproService {
     @Autowired
     ClsEmployeeStatusRepo clsEmployeeStatusRepo;
 
+    @Autowired
+    IdMapRepo idMapRepo;
+
 //    @Transactional("psqlLexproEntityManager")
     public void saveClsOrganization(List<ClsOrganization> list){
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         try{
             transaction.begin();
 
+            String entityName = "org";
+
+            AtomicInteger orgCount = new AtomicInteger(0);
+            log.info("Entity: " + entityName);
+            log.info("source count: " + list.size());
             List<ClsOrganization> parentList = list.stream()
                 .filter(obj -> obj.getIdParent() == null)
                 .map(obj -> {
-                    obj.setFullName(obj.getName());
-                    obj.setEmail("mail@govrb.ru");
-                    obj.setOrganizationType(clsOrganizationTypeRepo.getOne(1L));
-                    obj.setPath(obj.getId().toString());
-                    obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
-                    obj.setIsActivated(false);
-                    obj.setIsDeleted(false);
 
-                    ClsOrganization parent = psqlLexproEntityManager.merge(obj);
+                    if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                        obj.setFullName(obj.getName());
+                        obj.setEmail("mail@govrb.ru");
+                        obj.setOrganizationType(clsOrganizationTypeRepo.getOne(1L));
+                        obj.setPath(obj.getId().toString());
+                        obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                        obj.setIsActivated(false);
+                        obj.setIsDeleted(false);
 
-                    parent.setPath(parent.getId().toString());
+                        ClsOrganization parent = psqlLexproEntityManager.merge(obj);
 
-                    parent = psqlLexproEntityManager.merge(parent);
+                        parent.setPath(parent.getId().toString());
 
-                    parent.setOldId(obj.getId());
+                        parent = psqlLexproEntityManager.merge(parent);
 
-                    GlobalMap.orgsMap.put(obj.getId(), parent.getId());
-                    
-                    return parent;
+                        parent.setOldId(obj.getId());
+
+                        IdMap idMap = IdMap.builder()
+                                .entityName(entityName)
+                                .newId(parent.getId())
+                                .oldId(obj.getId())
+                                .build();
+
+                        idMapRepo.save(idMap);
+
+                        //System.out.println("id: " + obj.getId() + ", path: " + obj.getPath());
+                        log.info("new_id: " + parent.getId() + ", old_id: " + obj.getId());
+
+                        orgCount.getAndIncrement();
+
+                        return parent;
+
+                    } else {
+                        log.info("old_id: " + obj.getId() + " - already migration");
+                        return null;
+                    }
                 })
-                .peek(obj -> System.out.println("id: " + obj.getId() + ", path: " + obj.getPath()))
                 .collect(Collectors.toList());
 
+            log.info("parents count: " + parentList.size());
+
+            log.info("childs import start");
             for(int i=0; i<parentList.size(); i++){
                 int finalI = i;
                 for(int j=0; j < list.size(); j++) {
@@ -82,7 +113,7 @@ public class ImportPsqlLexproService {
 
                     if ((obj.getIdParent() != null) && (obj.getIdParent() == parentList.get(finalI).getOldId())) {
 
-                        System.out.println("id: " + obj.getId() + ", parentId: " + parentList.get(finalI).getId());
+                        log.info("id: " + obj.getId() + ", parentId: " + parentList.get(finalI).getId());
                         obj.setIdParent(parentList.get(finalI).getId());
                         obj.setEmail("mail@govrb.ru");
                         obj.setFullName(obj.getName());
@@ -97,14 +128,24 @@ public class ImportPsqlLexproService {
 
                         psqlLexproEntityManager.merge(childOrg);
 
-                        GlobalMap.orgsMap.put(obj.getId(), childOrg.getId());
+                        IdMap idMap = IdMap.builder()
+                                .entityName(entityName)
+                                .newId(childOrg.getId())
+                                .oldId(obj.getId())
+                                .build();
+
+                        psqlLexproEntityManager.persist(idMap);
+
+                        orgCount.getAndIncrement();
                     }
                 }
             }
             transaction.commit();
+            log.info("import complete. Imported org count: " + orgCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
+            log.info("import error", e.getMessage());
         }
     }
 
@@ -157,10 +198,6 @@ public class ImportPsqlLexproService {
         fio = personEntity.getFio().trim().replaceAll("  ", " ").split("\\s|\\.");
 
         if(fio.length > 0) {
-            for (int i = 0; i<fio.length; i++){
-                System.out.println(fio[i]);
-            }
-
             return ClsEmployee.builder()
                     .id(personEntity.getId())
                     .email(personEntity.getEmail())
@@ -170,9 +207,8 @@ public class ImportPsqlLexproService {
                     .build();
 
         } else {
-
+            log.info("fio parse error: " + personEntity.getFio());
             return null;
-
         }
     }
 
@@ -181,41 +217,63 @@ public class ImportPsqlLexproService {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
 
+        String entityName = "person";
+        log.info("Entity: " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger personCount = new AtomicInteger(0);
         try{
             list.stream()
                 .filter(obj -> obj != null)
                 .forEach(obj -> {
-                    obj.setEmail(obj.getEmail() != null ? obj.getEmail() : "default@mail.govrb.ru");
-                    obj.setIsDeleted(false);
-                    obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                    if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                        obj.setEmail(obj.getEmail() != null ? obj.getEmail() : "default@mail.govrb.ru");
+                        obj.setIsDeleted(false);
+                        obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
 
-                    ClsEmployee employee = psqlLexproEntityManager.merge(obj);
+                        ClsEmployee employee = psqlLexproEntityManager.merge(obj);
 
-                    GlobalMap.personMap.put(obj.getId(), employee.getId());
+                        IdMap idMap = IdMap.builder()
+                                .entityName(entityName)
+                                .newId(employee.getId())
+                                .oldId(obj.getId())
+                                .build();
 
-                    System.out.println("id: " + obj.getId() + ", oldId: " + GlobalMap.personMap.get(obj.getId()));
+                        psqlLexproEntityManager.persist(idMap);
 
-                    PersonEntity person = personEntities.stream()
-                            .filter(prs -> prs.getId() == obj.getId())
-                            .findFirst().get();
+                        log.info("new_id: " + employee.getId() + ", old_id: " + obj.getId());
 
-                    //TODO save reg_organization__employee
-                    RegOrganizationEmployee regOrganizationEmployee = RegOrganizationEmployee.builder()
-                            .organization(clsOrganizationRepo.getOne(GlobalMap.orgsMap.get(person.getOrgId())))
-                            .employee(employee)
-                            .typePosition(clsPositionRepo.getOne(GlobalMap.positionMap.get(person.getDoljnostId())))
-                            .employeeStatus(clsEmployeeStatusRepo.getOne(1L))
-                            .timeCreate(new Timestamp(System.currentTimeMillis()))
-                            .build();
+                        personCount.getAndIncrement();
+/*
+                        // save reg_organization__employee
+                        PersonEntity person = personEntities.stream()
+                                .filter(prs -> prs.getId() == obj.getId())
+                                .findFirst().get();
 
-                    psqlLexproEntityManager.persist(regOrganizationEmployee);
+                        IdMap orgId = idMapRepo.findByEntityNameAndOldId("org", person.getOrgId());
+                        IdMap doljnId = idMapRepo.findByEntityNameAndOldId("sp_doljnost", person.getDoljnostId());
 
+                        if(orgId!=null && doljnId!=null) {
+                            RegOrganizationEmployee regOrganizationEmployee = RegOrganizationEmployee.builder()
+                                    .organization(clsOrganizationRepo.getOne(orgId.getNewId()))
+                                    .employee(employee)
+                                    .typePosition(clsPositionRepo.getOne(doljnId.getNewId()))
+                                    .employeeStatus(clsEmployeeStatusRepo.getOne(1L))
+                                    .timeCreate(new Timestamp(System.currentTimeMillis()))
+                                    .build();
+
+                            psqlLexproEntityManager.persist(regOrganizationEmployee);
+                        }*/
+                    } else {
+                        log.info(obj.getId() + " - already imported");
+                    }
                 });
 
             transaction.commit();
+            log.info(entityName + " import complete. count: " + personCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
+            log.info(entityName + " import error", e.getMessage());
         }
     }
 
@@ -237,7 +295,9 @@ public class ImportPsqlLexproService {
 
     private ClsUser convertUsersEntityToClsUser(UsersEntity usersEntity){
 
-        ClsEmployee empl = clsEmployeeRepo.getOne(GlobalMap.personMap.get(usersEntity.getPersonEntity().getId()));
+        IdMap id = idMapRepo.findByEntityNameAndOldId("person", usersEntity.getPersonEntity().getId());
+
+        ClsEmployee empl = id != null ? clsEmployeeRepo.getOne(id.getNewId()) : null;
 
         if(empl != null) {
             return ClsUser.builder()
@@ -257,28 +317,46 @@ public class ImportPsqlLexproService {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
 
+        String entityName = "users";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger userCount = new AtomicInteger(0);
         try{
             list.stream()
                 .filter(obj -> obj != null)
                 .forEach(obj -> {
-                    obj.setIsDeleted(false);
-                    obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                    if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                        obj.setIsDeleted(false);
+                        obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
 
-                    ClsUser user = psqlLexproEntityManager.merge(obj);
+                        ClsUser user = psqlLexproEntityManager.merge(obj);
 
-                    RegEmployeeUser regEmployeeUser = RegEmployeeUser.builder()
-                            .user(user)
-                            .employee(clsEmployeeRepo.getOne(user.getIdEmployee()))
-                            .timeCreate(new Timestamp(System.currentTimeMillis()))
-                            .build();
+                        IdMap idMap = IdMap.builder()
+                                .entityName(entityName)
+                                .newId(user.getId())
+                                .oldId(obj.getId())
+                                .build();
 
-                    psqlLexproEntityManager.persist(regEmployeeUser);
+                        psqlLexproEntityManager.persist(idMap);
+
+                        log.info("new_id: " + user.getId() + ", old_id: " + obj.getId());
+                        userCount.getAndIncrement();
+                        RegEmployeeUser regEmployeeUser = RegEmployeeUser.builder()
+                                .user(user)
+                                .employee(clsEmployeeRepo.getOne(user.getIdEmployee()))
+                                .timeCreate(new Timestamp(System.currentTimeMillis()))
+                                .build();
+
+                        psqlLexproEntityManager.persist(regEmployeeUser);
+                    }
                 });
 
            transaction.commit();
+           log.info(entityName + " import complete. count: " + userCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
+            log.info(entityName + " import error", e.getMessage());
         }
     }
 
@@ -315,24 +393,39 @@ public class ImportPsqlLexproService {
     public void saveClsPosition(List<ClsPosition> list){
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
-
+        String entityName = "sp_doljnost";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger posCount = new AtomicInteger(0);
         try {
             list.stream()
                     .filter(obj -> obj != null)
                     //TODO возможно надо удалять повторы по полю code?
                     .forEach(obj -> {
-                        obj.setIsDeleted(false);
-                        obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            obj.setIsDeleted(false);
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
 
-                        ClsPosition clsPosition = psqlLexproEntityManager.merge(obj);
+                            ClsPosition clsPosition = psqlLexproEntityManager.merge(obj);
 
-                        GlobalMap.positionMap.put(obj.getId(), clsPosition.getId());
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(clsPosition.getId())
+                                    .oldId(obj.getId())
+                                    .build();
+
+                            psqlLexproEntityManager.persist(idMap);
+                            log.info("new_id: " + clsPosition.getId() + ", old_id: " + obj.getId());
+                            posCount.getAndIncrement();
+                        }
                     });
 
             transaction.commit();
+            log.info(entityName + " import complete. count: " + posCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
+            log.info(entityName + " import error", e.getMessage());
         }
     }
 

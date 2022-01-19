@@ -54,11 +54,13 @@ public class ExportController {
     }
 
 
-    @GetMapping("/org")
+    @GetMapping("/migration_spr")
     public @ResponseBody
-    String exportOrgEntity(@RequestParam(value = "startId", required = false) Long startId) {
-        String entityName = "org";
+    String exportUserPersonEntity(@RequestParam(value = "startId", required = false) Long startId) {
         try {
+
+            // import org
+            String entityName = "org";
             Long maxId = exportFbService.getMaxIdInTable(entityName);
             if (startId == null) {
                 startId = 0L;
@@ -74,24 +76,16 @@ public class ExportController {
                 size += entities.size();
                 startId += step;
             }
-            return "Сохранено " + size + " элементов";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
-        }
-    }
 
-    @GetMapping("/person")
-    public @ResponseBody
-    String exportUserPersonEntity(@RequestParam(value = "startId", required = false) Long startId) {
-        try {
+
             // import sp_doljnost
-            String entityName = "sp_doljnost";
-            Long maxId = exportFbService.getMaxIdInTable(entityName);
+            entityName = "sp_doljnost";
+            maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
             if (startId == null) {
                 startId = 0L;
             }
-            Long size = 0L;
+            size = 0L;
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
@@ -106,6 +100,7 @@ public class ExportController {
             // import person
             entityName = "person";
             maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
             if (startId == null) {
                 startId = 0L;
             }
@@ -125,6 +120,7 @@ public class ExportController {
             // import users
             entityName = "users";
             maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
             if (startId == null) {
                 startId = 0L;
             }
@@ -140,7 +136,7 @@ public class ExportController {
                 startId += step;
             }
 
-            return "Migration complete.";
+            return "Migration sp_doljnost, person, users complete.";
 
         } catch (Exception e) {
             e.printStackTrace();
