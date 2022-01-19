@@ -20,28 +20,28 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        entityManagerFactoryRef = "fbZakonEntityManagerFactory",
-        transactionManagerRef = "fbTransactionManager",
-        basePackages = { "ru.sibdigital.lexpro_migr.repo.zakon" }
+        entityManagerFactoryRef = "psqlLexproEntityManagerFactory",
+        transactionManagerRef = "psqlLexproTransactionManager",
+        basePackages = { "ru.sibdigital.lexpro_migr.repo.lexpro" }
 )
-public class FBZakonPersistenceJPAConfig {
-    private String driver = "org.firebirdsql.jdbc.FirebirdDriver";
+public class PsqlLexproPersistenceJPAConfig {
+    private String driver = "org.postgresql.Driver";
 
-    @Value("${spring.fb-datasource.url}")
+    @Value("${spring.psql-lexpro-datasource.url}")
     private String bdUrl;
 
-    @Value("${spring.fb-datasource.username}")
+    @Value("${spring.psql-lexpro-datasource.username}")
     private String bdUsername;
 
-    @Value("${spring.fb-datasource.password}")
+    @Value("${spring.psql-lexpro-datasource.password}")
     private String bdPassword;
 
-    @Bean(name = "fbZakonEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean fbEntityManagerFactory() {
+    @Bean(name = "psqlLexproEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean psqlEntityManagerFactory() {
         LocalContainerEntityManagerFactoryBean em
                 = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(fbDataSource());
-        em.setPackagesToScan(new String[] { "ru.sibdigital.lexpro_migr.model.zakon" });
+        em.setDataSource(psqlLexproDataSource());
+        em.setPackagesToScan(new String[] { "ru.sibdigital.lexpro_migr.model.lexpro" });
 
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
@@ -51,7 +51,7 @@ public class FBZakonPersistenceJPAConfig {
     }
 
     @Bean
-    public DataSource fbDataSource(){
+    public DataSource psqlLexproDataSource(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(driver);
         dataSource.setUrl(bdUrl);
@@ -60,28 +60,28 @@ public class FBZakonPersistenceJPAConfig {
         return dataSource;
     }
 
-    @Bean("fbTransactionManager")
-    public PlatformTransactionManager fbTransactionManager() {
+    @Bean("psqlLexproTransactionManager")
+    public PlatformTransactionManager psqlLexproTransactionManager() {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(fbEntityManagerFactory().getObject());
+        transactionManager.setEntityManagerFactory(psqlEntityManagerFactory().getObject());
 
         return transactionManager;
     }
 
-    @Bean(name = "fbZakonEntityManager")
+    @Bean(name = "psqlLexproEntityManager")
     public EntityManager entityManager() {
-        return fbEntityManagerFactory().getObject().createEntityManager();
+        return psqlEntityManagerFactory().getObject().createEntityManager();
     }
 
     @Bean
-    public PersistenceExceptionTranslationPostProcessor fbExceptionTranslation(){
+    public PersistenceExceptionTranslationPostProcessor psqlLexproExceptionTranslation(){
         return new PersistenceExceptionTranslationPostProcessor();
     }
 
     Properties additionalProperties() {
         Properties properties = new Properties();
 //        properties.setProperty("hibernate.hbm2ddl.auto", "create-drop");
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.FirebirdDialect");
+        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
         return properties;
     }
