@@ -1,12 +1,10 @@
 package ru.sibdigital.lexpro_migr.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import ru.sibdigital.lexpro_migr.model.lexpro.ClsEmployee;
-import ru.sibdigital.lexpro_migr.model.lexpro.ClsOrganization;
-import ru.sibdigital.lexpro_migr.model.lexpro.ClsPosition;
-import ru.sibdigital.lexpro_migr.model.lexpro.ClsUser;
+import ru.sibdigital.lexpro_migr.model.lexpro.*;
 import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
 import ru.sibdigital.lexpro_migr.service.ImportPsqlLexproService;
 import ru.sibdigital.lexpro_migr.service.ImportPsqlZakonService;
@@ -14,6 +12,7 @@ import ru.sibdigital.lexpro_migr.service.ExportFbService;
 
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping(path="/export_zakon")
 public class ExportController {
@@ -29,7 +28,7 @@ public class ExportController {
 
     private final String dir = "classpath:sql-scripts/export_data";
     private final String sql_dir = "classpath:sql-scripts/export_zakon_data";
-    private final Long step = 1000L;
+    private final Long step = 50L; //1000L;
 
     @GetMapping("/table/{table_name}")
     public @ResponseBody
@@ -54,11 +53,12 @@ public class ExportController {
     }
 
 
-    @GetMapping("/migration_spr")
+    @GetMapping("/spr")
     public @ResponseBody
     String exportUserPersonEntity(@RequestParam(value = "startId", required = false) Long startId) {
         try {
 
+            log.info("export zakon");
             // import org
             String entityName = "org";
             Long maxId = exportFbService.getMaxIdInTable(entityName);
@@ -118,6 +118,7 @@ public class ExportController {
 
 
             // import users
+/*
             entityName = "users";
             maxId = exportFbService.getMaxIdInTable(entityName);
             startId = 0L;
@@ -135,6 +136,7 @@ public class ExportController {
                 size += entities.size();
                 startId += step;
             }
+*/
 
             return "Migration sp_doljnost, person, users complete.";
 
@@ -143,4 +145,76 @@ public class ExportController {
             return e.getMessage();
         }
     }
+
+    @GetMapping("/docums")
+    public @ResponseBody
+    String exportDocumsEntity(@RequestParam(value = "startId", required = false) Long startId) {
+        try {
+
+            log.info("export docums");
+            // import org
+            String entityName = "docums";
+            Long maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
+            if (startId == null) {
+                startId = 0L;
+            }
+            Long size = 0L;
+            while (startId < maxId) {
+                List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
+
+                log.info("converting documsEntity start");
+                List<DocRkk> resultList = importPsqlLexproService.convertDocumsEntities(entities);
+                log.info("converting documsEntity end");
+
+                importPsqlLexproService.saveDocRkk(resultList);
+
+                size += entities.size();
+                startId += step;
+            }
+
+            return "Migration complete.";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
+
+
+    @GetMapping("/files")
+    public @ResponseBody
+    String exportFilesEntity(@RequestParam(value = "startId", required = false) Long startId) {
+        try {
+
+            log.info("export files");
+            // import org
+            String entityName = "files";
+            Long maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
+            if (startId == null) {
+                startId = 0L;
+            }
+            Long size = 0L;
+            while (startId < maxId) {
+                List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
+
+                log.info("converting start");
+                List<TpRkkFile> resultList = importPsqlLexproService.convertFilesEntities(entities);
+                log.info("converting end");
+
+                importPsqlLexproService.saveTpRkkFile(resultList);
+
+                size += entities.size();
+                startId += step;
+            }
+
+            return "Migration complete.";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
 }
+

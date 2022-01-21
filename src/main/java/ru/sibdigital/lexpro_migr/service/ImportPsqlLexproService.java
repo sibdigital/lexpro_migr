@@ -1,14 +1,12 @@
 package ru.sibdigital.lexpro_migr.service;
 
+import com.vladmihalcea.hibernate.type.range.Range;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
-import ru.sibdigital.lexpro_migr.model.zakon.OrgEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.SpDoljnostEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.UsersEntity;
+import ru.sibdigital.lexpro_migr.model.zakon.*;
 import ru.sibdigital.lexpro_migr.repo.lexpro.*;
 import ru.sibdigital.lexpro_migr.repo.zakon.PersonRepo;
 import ru.sibdigital.lexpro_migr.utils.StrUtils;
@@ -16,6 +14,10 @@ import ru.sibdigital.lexpro_migr.utils.StrUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -48,6 +50,12 @@ public class ImportPsqlLexproService {
 
     @Autowired
     IdMapRepo idMapRepo;
+
+    @Autowired
+    ClsNpaTypeRepo clsNpaTypeRepo;
+
+    @Autowired
+    ClsSessionRepo clsSessionRepo;
 
 //    @Transactional("psqlLexproEntityManager")
     public void saveClsOrganization(List<ClsOrganization> list){
@@ -111,7 +119,7 @@ public class ImportPsqlLexproService {
                 for(int j=0; j < list.size(); j++) {
                     ClsOrganization obj = list.get(j);
 
-                    if ((obj.getIdParent() != null) && (obj.getIdParent() == parentList.get(finalI).getOldId())) {
+                    if ((obj.getIdParent() != null) && (parentList.get(finalI) != null) && (obj.getIdParent() == parentList.get(finalI).getOldId())) {
 
                         log.info("id: " + obj.getId() + ", parentId: " + parentList.get(finalI).getId());
                         obj.setIdParent(parentList.get(finalI).getId());
@@ -141,11 +149,11 @@ public class ImportPsqlLexproService {
                 }
             }
             transaction.commit();
-            log.info("import complete. Imported org count: " + orgCount.get());
+            log.info("save complete. Saved org count: " + orgCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
-            log.info("import error", e.getMessage());
+            log.info("save error", e.getMessage());
         }
     }
 
@@ -264,16 +272,16 @@ public class ImportPsqlLexproService {
                             psqlLexproEntityManager.persist(regOrganizationEmployee);
                         }*/
                     } else {
-                        log.info(obj.getId() + " - already imported");
+                        log.info(obj.getId() + " - already saved");
                     }
                 });
 
             transaction.commit();
-            log.info(entityName + " import complete. count: " + personCount.get());
+            log.info(entityName + " save complete. count: " + personCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
-            log.info(entityName + " import error", e.getMessage());
+            log.info(entityName + " save error", e.getMessage());
         }
     }
 
@@ -352,11 +360,11 @@ public class ImportPsqlLexproService {
                 });
 
            transaction.commit();
-           log.info(entityName + " import complete. count: " + userCount.get());
+           log.info(entityName + " save complete. count: " + userCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
-            log.info(entityName + " import error", e.getMessage());
+            log.info(entityName + " save error", e.getMessage());
         }
     }
 
@@ -421,13 +429,251 @@ public class ImportPsqlLexproService {
                     });
 
             transaction.commit();
-            log.info(entityName + " import complete. count: " + posCount.get());
+            log.info(entityName + " save complete. count: " + posCount.get());
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
-            log.info(entityName + " import error", e.getMessage());
+            log.info(entityName + " save error", e.getMessage());
         }
     }
 
+
+    //*********************** DOCUMS *************************
+
+    public List<DocRkk> convertDocumsEntities(List<? extends Object> list){
+        return list.stream()
+                .map(
+                        obj -> {
+                            if(obj instanceof DocumsEntity){
+                                return convertDocumsEntityToDocRkk((DocumsEntity) obj);
+                            }
+                            return null;
+                        }
+                )
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private DocRkk convertDocumsEntityToDocRkk(DocumsEntity documsEntity){
+
+        //TODO build ClsSession()
+        ClsSession clsSession = null;
+        if(documsEntity.getSessiaNum() != null) {
+            var sessionList = clsSessionRepo.findAllByDateAndNumberOrderByDate(documsEntity.getSessiaDate(), documsEntity.getSessiaNum());
+            if(sessionList.size() > 0){
+                clsSession = sessionList.get(0);
+            } else {
+                clsSession = ClsSession.builder()
+                        .date(documsEntity.getSessiaDate())
+                        .isDeleted(documsEntity.getFlagDeleted().equalsIgnoreCase("T") ? true : false)
+                        .number(documsEntity.getSessiaNum())
+                        .timeCreate(new Timestamp(System.currentTimeMillis()))
+                        .build();
+
+                //psqlLexproEntityManager.persist(clsSession);
+                clsSessionRepo.saveAndFlush(clsSession);
+            }
+        }
+
+        ClsNpaType npaType = null;
+        if(documsEntity.getDkind().getName().equalsIgnoreCase("закон")) {
+            npaType = ClsNpaType.builder().id(1L).build();
+        } else {
+            npaType = ClsNpaType.builder().id(2L).build();
+        }
+
+        ClsOrganization subject = null;
+        if(documsEntity.getSubject() != null) {
+            IdMap org = idMapRepo.findByEntityNameAndOldId("org", documsEntity.getSubject().getId());
+            if (org != null) {
+                subject = ClsOrganization.builder().id(org.getNewId()).build();
+            }
+        }
+
+        ClsOrganization komitet = null;
+        if(documsEntity.getOtvetstvKomitet() != null) {
+            IdMap kom = idMapRepo.findByEntityNameAndOldId("org", documsEntity.getOtvetstvKomitet().getId());
+            if (kom != null) {
+                komitet = ClsOrganization.builder().id(kom.getNewId()).build();
+            }
+        }
+
+        ClsEmployee dokl = null;
+        if(documsEntity.getDokladchik() != null) {
+            IdMap pers = idMapRepo.findByEntityNameAndOldId("person", documsEntity.getDokladchik().getId());
+            if (pers != null) {
+                dokl = ClsEmployee.builder().id(pers.getNewId()).build();
+            }
+        }
+
+        ClsEmployee otvestv = null;
+        if(documsEntity.getOtvetstvPerson() != null) {
+            IdMap persOtvestv = idMapRepo.findByEntityNameAndOldId("person", documsEntity.getOtvetstvPerson().getId());
+            if (persOtvestv != null) {
+                otvestv = ClsEmployee.builder().id(persOtvestv.getNewId()).build();
+            }
+        }
+
+        ClsRkkStatus status = null;
+
+        switch (documsEntity.getStatus()) {
+            case "В работе": status = ClsRkkStatus.builder().id(1L).build(); break;
+            case "Отклонен": status = ClsRkkStatus.builder().id(4L).build(); break;
+            case "Отозван": status = ClsRkkStatus.builder().id(2L).build(); break;
+            case "Отправлен на доработку": status = ClsRkkStatus.builder().id(3L).build(); break;
+            case "Принят":
+            case "Принят в первом чтении": status = ClsRkkStatus.builder().id(5L).build(); break;
+        }
+
+        return DocRkk.builder()
+                .id(documsEntity.getId())
+                .rkkNumber(documsEntity.getRegNum())
+                .npaName(documsEntity.getDescr())
+                .registrationDate(documsEntity.getRegDate())
+                .introductionDate(documsEntity.getDdate())
+                .npaType(npaType)
+                .legislativeBasis(documsEntity.getZakOsnova())
+                .lawSubject(subject)
+                .speaker(dokl)
+                .readyForSession((documsEntity.getRkkReady() != null && documsEntity.getRkkReady().equalsIgnoreCase("да")) ? true : false)
+                .responsibleOrganization(komitet)
+                .responsibleEmployee(otvestv)
+                .deadline(documsEntity.getControlDate())
+                .session(clsSession)
+                .includedInAgenda(documsEntity.getPovestDate())
+                .agendaNumber(documsEntity.getNpp())
+                .status(status)
+                .stage(null)
+                .headSignature(documsEntity.getPrezidentPodpisDate())
+                .publicationDate(documsEntity.getOpublikDate())
+                .timeCreate(new Timestamp(System.currentTimeMillis()))
+                .timeUpdate(documsEntity.getEditDate())
+                .isArchived(false)
+                .isDeleted(documsEntity.getFlagDeleted().equalsIgnoreCase("T") ? true : false)
+                .sysPeriod(Range.openInfinite(ZonedDateTime.now()))
+                .isDeleted(false)
+                .build();
+    }
+
+    public void saveDocRkk(List<DocRkk> list){
+        EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
+        transaction.begin();
+        String entityName = "docums";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger posCount = new AtomicInteger(0);
+        try {
+            list.stream()
+                    .filter(obj -> obj != null)
+                    .forEach(obj -> {
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            obj.setIsDeleted(false);
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+
+                            //if(obj.getSession().getId() == null) psqlLexproEntityManager.persist(obj.getSession());
+
+                            DocRkk docRkk = psqlLexproEntityManager.merge(obj);
+
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(docRkk.getId())
+                                    .oldId(obj.getId())
+                                    .build();
+
+                            psqlLexproEntityManager.persist(idMap);
+                            log.info("new_id: " + docRkk.getId() + ", old_id: " + obj.getId());
+                            posCount.getAndIncrement();
+                        }
+                    });
+
+            transaction.commit();
+            log.info(entityName + " save complete. count: " + posCount.get());
+        } catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            log.info(entityName + " save error", e.getMessage());
+        }
+    }
+
+
+    //************************** FILES **********************************
+
+    public List<TpRkkFile> convertFilesEntities(List<? extends Object> list){
+        return list.stream()
+                .map(
+                        obj -> {
+                            if(obj instanceof FilesEntity){
+                                return convertFilesEntityToTpRkkFile((FilesEntity) obj);
+                            }
+                            return null;
+                        }
+                )
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private TpRkkFile convertFilesEntityToTpRkkFile(FilesEntity filesEntity) {
+
+        return null;
+/*        return TpRkkFile.builder()
+                .docRkk(getDocRkk(fileDto))
+                .group(getGroupAttachment(fileDto))
+                .type(getTypeAttachment(fileDto))
+                .participant(getOrganization(fileDto))
+                .numberAttachment(fileDto.getNumberAttachment())
+                .signingDate(null)
+                .pageCount(filesEntity.getPageCount())
+                .attachmentPath(filesEntity.getAttachmentPath())
+                .fileName(filesEntity.getFileName())
+                .originalFileName(filesEntity.getOriginalFileName())
+                .fileExtension(filesEntity.getFileExtension())
+                .hash(filesEntity.getHash())
+                .fileSize(filesEntity.getFileSize())
+                .operator(getEmployee(fileDto))
+                .isDeleted(false)
+                .timeCreate(new Timestamp(System.currentTimeMillis()))
+                .hashSignature(fileDto.getHashSignature())
+                .idFileSignature()
+                .certificateInformation(fileDto.getCertificateInformation())
+                .build();*/
+    }
+
+    public void saveTpRkkFile(List<TpRkkFile> list){
+        EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
+        transaction.begin();
+        String entityName = "files";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger posCount = new AtomicInteger(0);
+        try {
+            list.stream()
+                    .filter(obj -> obj != null)
+                    .forEach(obj -> {
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            obj.setIsDeleted(false);
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+
+                            TpRkkFile rkkFile = psqlLexproEntityManager.merge(obj);
+
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(rkkFile.getId())
+                                    .oldId(obj.getId())
+                                    .build();
+
+                            psqlLexproEntityManager.persist(idMap);
+                            log.info("new_id: " + rkkFile.getId() + ", old_id: " + obj.getId());
+                            posCount.getAndIncrement();
+                        }
+                    });
+
+            transaction.commit();
+            log.info(entityName + " save complete. count: " + posCount.get());
+        } catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            log.info(entityName + " save error", e.getMessage());
+        }
+    }
 
 }

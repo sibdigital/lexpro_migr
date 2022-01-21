@@ -24,60 +24,10 @@ public class ClsRkkStatus implements Serializable {
     private String name;
     private String code;
     private String style;
-    private Timestamp timeCreate;
-    private Boolean isDeleted;
-
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Basic
-    @Column(name = "name", nullable = false)
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Basic
-    @Column(name = "code", nullable = false, length = 25)
-    public String getCode() {
-        return code;
-    }
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    @Basic
-    @Column(name = "style", nullable = false)
-    public String getStyle() {
-        return style;
-    }
-    public void setStyle(String style) {
-        this.style = style;
-    }
-
-    @Basic
     @Column(name = "time_create")
-    public Timestamp getTimeCreate() {
-        return timeCreate;
-    }
-    public void setTimeCreate(Timestamp timeCreate) {
-        this.timeCreate = timeCreate;
-    }
-
-    @Basic
+    private Timestamp timeCreate;
     @Column(name = "is_deleted")
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-    public void setIsDeleted(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
+    private Boolean isDeleted;
 
     @Override
     public boolean equals(Object o) {

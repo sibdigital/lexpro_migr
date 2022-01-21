@@ -1,8 +1,6 @@
 package ru.sibdigital.lexpro_migr.model.lexpro;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,6 +10,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "cls_session", schema = "public")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
@@ -22,53 +22,15 @@ public class ClsSession implements Serializable {
     @SequenceGenerator(name = "CLS_SESSION_SEQ_GEN", sequenceName = "cls_session_id_seq", allocationSize = 1, schema = "public")
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CLS_SESSION_SEQ_GEN")
     private Long id;
+    @Column(name = "number", nullable = false)
     private String number;
+    @Column(name = "date")
     private Date date;
+    @Column(name = "time_create")
     private Timestamp timeCreate;
+    @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    @Basic
-    @Column(name = "number", nullable = false)
-    public String getNumber() {
-        return number;
-    }
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    @Basic
-    @Column(name = "date")
-    public Date getDate() {
-        return date;
-    }
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    @Basic
-    @Column(name = "time_create")
-    public Timestamp getTimeCreate() {
-        return timeCreate;
-    }
-    public void setTimeCreate(Timestamp timeCreate) {
-        this.timeCreate = timeCreate;
-    }
-
-    @Basic
-    @Column(name = "is_deleted")
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-    public void setIsDeleted(Boolean isDeleted) {
-        this.isDeleted = isDeleted;
-    }
 
     @Override
     public boolean equals(Object o) {

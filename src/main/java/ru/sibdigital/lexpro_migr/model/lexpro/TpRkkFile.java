@@ -1,8 +1,6 @@
 package ru.sibdigital.lexpro_migr.model.lexpro;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,6 +10,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "tp_rkk_file", schema = "public")
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
@@ -39,183 +39,37 @@ public class TpRkkFile implements Serializable {
     @JoinColumn(name = "id_participant", referencedColumnName = "id")
     private ClsOrganization participant;
 
+    @Column(name = "number_attachment")
     private String numberAttachment;
+    @Column(name = "signing_date")
     private Date signingDate;
+    @Column(name = "page_count")
     private Integer pageCount;
+    @Column(name = "attachment_path", length = -1)
     private String attachmentPath;
+    @Column(name = "file_name", length = -1)
     private String fileName;
+    @Column(name = "original_file_name", length = -1)
     private String originalFileName;
+    @Column(name = "file_extension", length = 16)
     private String fileExtension;
     private String hash;
+    @Column(name = "file_size")
     private Long fileSize;
 
     @OneToOne
     @JoinColumn(name = "id_operator", referencedColumnName = "id")
     private ClsEmployee operator;
 
+    @Column(name = "time_create", nullable = false)
     private Timestamp timeCreate;
+    @Column(name = "is_deleted")
     private Boolean isDeleted;
+    @Column(name = "id_file_signature")
     private Long idFileSignature;
+    @Column(name = "hash_signature")
     private String hashSignature;
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public DocRkk getDocRkk() {
-        return docRkk;
-    }
-    public void setDocRkk(DocRkk docRkk) {
-        this.docRkk = docRkk;
-    }
-
-    public ClsGroupAttachment getGroup() {
-        return group;
-    }
-    public void setGroup(ClsGroupAttachment group) {
-        this.group = group;
-    }
-
-    public ClsTypeAttachment getType() {
-        return type;
-    }
-    public void setType(ClsTypeAttachment type) {
-        this.type = type;
-    }
-
-    public ClsOrganization getParticipant() {
-        return participant;
-    }
-    public void setParticipant(ClsOrganization participant) {
-        this.participant = participant;
-    }
-
-    @Basic
-    @Column(name = "number_attachment")
-    public String getNumberAttachment() {
-        return numberAttachment;
-    }
-    public void setNumberAttachment(String numberAttachment) {
-        this.numberAttachment = numberAttachment;
-    }
-
-    @Basic
-    @Column(name = "signing_date")
-    public Date getSigningDate() {
-        return signingDate;
-    }
-    public void setSigningDate(Date signingDate) {
-        this.signingDate = signingDate;
-    }
-
-    @Basic
-    @Column(name = "page_count")
-    public Integer getPageCount() {
-        return pageCount;
-    }
-    public void setPageCount(Integer pageCount) {
-        this.pageCount = pageCount;
-    }
-
-    @Basic
-    @Column(name = "attachment_path", length = -1)
-    public String getAttachmentPath() {
-        return attachmentPath;
-    }
-    public void setAttachmentPath(String attachmentPath) {
-        this.attachmentPath = attachmentPath;
-    }
-
-    @Basic
-    @Column(name = "file_name", length = -1)
-    public String getFileName() {
-        return fileName;
-    }
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    @Basic
-    @Column(name = "original_file_name", length = -1)
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-    public void setOriginalFileName(String originalFileName) {
-        this.originalFileName = originalFileName;
-    }
-
-    @Basic
-    @Column(name = "file_extension", length = 16)
-    public String getFileExtension() {
-        return fileExtension;
-    }
-    public void setFileExtension(String fileExtension) {
-        this.fileExtension = fileExtension;
-    }
-
-    @Basic
-    @Column(name = "hash", length = -1)
-    public String getHash() {
-        return hash;
-    }
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    @Basic
-    @Column(name = "file_size")
-    public Long getFileSize() {
-        return fileSize;
-    }
-    public void setFileSize(Long fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public ClsEmployee getOperator() {
-        return operator;
-    }
-    public void setOperator(ClsEmployee operator) {
-        this.operator = operator;
-    }
-
-    @Basic
-    @Column(name = "time_create", nullable = false)
-    public Timestamp getTimeCreate() {
-        return timeCreate;
-    }
-    public void setTimeCreate(Timestamp timeCreate) {
-        this.timeCreate = timeCreate;
-    }
-
-    @Basic
-    @Column(name = "is_deleted")
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
-
-    @Basic
-    @Column(name = "id_file_signature")
-    public Long getIdFileSignature() {
-        return idFileSignature;
-    }
-    public void setIdFileSignature(Long idFileSignature) {
-        this.idFileSignature = idFileSignature;
-    }
-
-    @Basic
-    @Column(name = "hash_signature")
-    public String getHashSignature() {
-        return hashSignature;
-    }
-    public void setHashSignature(String hashSignature) {
-        this.hashSignature = hashSignature;
-    }
 
     @Override
     public boolean equals(Object o) {
