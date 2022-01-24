@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
-import ru.sibdigital.lexpro_migr.model.zakon.OrgEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.SpDoljnostEntity;
-import ru.sibdigital.lexpro_migr.model.zakon.SpFkindEntity;
+import ru.sibdigital.lexpro_migr.model.zakon.*;
 import ru.sibdigital.lexpro_migr.service.*;
 
 import java.util.List;
@@ -25,7 +22,7 @@ public class ExportController {
     ImportPsqlZakonService importPsqlZakonService;
 
     @Autowired
-    ImportPsqlLexproService importPsqlLexproService;
+    ImportFilesService importFilesService;
 
     @Autowired
     ImportOrgService importOrgService;
@@ -39,41 +36,21 @@ public class ExportController {
     @Autowired
     ImportPersonService importPersonService;
 
+    @Autowired
+    ImportUsersService importUsersService;
+
+    @Autowired
+    ImportDocumsService importDocumsService;
+
     private final String dir = "classpath:sql-scripts/export_data";
     private final String sql_dir = "classpath:sql-scripts/export_zakon_data";
     private final Long step = 100L; //1000L;
-
-/*
-    @GetMapping("/table/{table_name}")
-    public @ResponseBody
-    String exportEntity(@PathVariable("table_name") String tableName, @RequestParam(value = "startId", required = false) Long startId) {
-        try {
-            Long maxId = exportFbService.getMaxIdInTable(tableName);
-            if (startId == null) {
-                startId = 0L;
-            }
-            Long size = 0L;
-            while (startId < maxId) {
-                List<?> entities = exportFbService.getEntities(dir, tableName, startId, startId + step);
-                importPsqlZakonService.saveEntities(entities);
-                size += entities.size();
-                startId += step;
-            }
-            return "Сохранено " + size + " элементов";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return e.getMessage();
-        }
-    }
-*/
 
 
     @GetMapping("/spr")
     public @ResponseBody
     String exportUserPersonEntity(@RequestParam(value = "startId", required = false) Long startId) {
         try {
-
-
 
             log.info("export zakon");
             // import org
@@ -166,9 +143,9 @@ public class ExportController {
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
-                List<ClsUser> resultList = importPsqlLexproService.convertUsersEntities(entities);
+                List<ClsUser> resultList = importUsersService.convertEntities((List<UsersEntity>) entities);
 
-                importPsqlLexproService.saveClsUser(resultList);
+                importUsersService.saveToDb(resultList);
 
                 size += entities.size();
                 startId += step;
@@ -200,10 +177,10 @@ public class ExportController {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
                 log.info("converting documsEntity start");
-                List<DocRkk> resultList = importPsqlLexproService.convertDocumsEntities(entities);
+                List<DocRkk> resultList = importDocumsService.convertEntities((List<DocumsEntity>) entities);
                 log.info("converting documsEntity end");
 
-                importPsqlLexproService.saveDocRkk(resultList);
+                importDocumsService.saveToDb(resultList);
 
                 size += entities.size();
                 startId += step;
@@ -236,10 +213,10 @@ public class ExportController {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
                 log.info("converting start");
-                List<TpRkkFile> resultList = importPsqlLexproService.convertFilesEntities(entities);
+                List<TpRkkFile> resultList = importFilesService.convertEntities((List<FilesEntity>) entities);
                 log.info("converting end");
 
-                importPsqlLexproService.saveTpRkkFile(resultList);
+                importFilesService.saveTpRkkFile(resultList);
 
                 size += entities.size();
                 startId += step;
