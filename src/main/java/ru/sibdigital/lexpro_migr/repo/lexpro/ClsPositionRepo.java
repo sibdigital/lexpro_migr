@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import ru.sibdigital.lexpro_migr.model.lexpro.ClsPosition;
 
 @Repository
-public interface ClsPositionRepo extends JpaRepository<ClsPosition, Long>, JpaSpecificationExecutor<ClsPosition> {
+public interface ClsPositionRepo extends JpaRepository<ClsPosition, Long> {
 }

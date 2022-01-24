@@ -37,7 +37,10 @@ public class ClsUser implements Serializable {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<RegUserRole> roles;
 
+/*
+    @Transient
     private Long idEmployee;
+*/
 
     public String getFullName() {
         String fullName = "";

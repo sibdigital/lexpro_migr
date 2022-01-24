@@ -5,10 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
+import ru.sibdigital.lexpro_migr.model.zakon.OrgEntity;
 import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
-import ru.sibdigital.lexpro_migr.service.ImportPsqlLexproService;
-import ru.sibdigital.lexpro_migr.service.ImportPsqlZakonService;
-import ru.sibdigital.lexpro_migr.service.ExportFbService;
+import ru.sibdigital.lexpro_migr.model.zakon.SpDoljnostEntity;
+import ru.sibdigital.lexpro_migr.model.zakon.SpFkindEntity;
+import ru.sibdigital.lexpro_migr.service.*;
 
 import java.util.List;
 
@@ -26,10 +27,23 @@ public class ExportController {
     @Autowired
     ImportPsqlLexproService importPsqlLexproService;
 
+    @Autowired
+    ImportOrgService importOrgService;
+
+    @Autowired
+    ImportSpDoljnService importSpDoljnService;
+
+    @Autowired
+    ImportSpFkindService importSpFkindService;
+
+    @Autowired
+    ImportPersonService importPersonService;
+
     private final String dir = "classpath:sql-scripts/export_data";
     private final String sql_dir = "classpath:sql-scripts/export_zakon_data";
-    private final Long step = 50L; //1000L;
+    private final Long step = 100L; //1000L;
 
+/*
     @GetMapping("/table/{table_name}")
     public @ResponseBody
     String exportEntity(@PathVariable("table_name") String tableName, @RequestParam(value = "startId", required = false) Long startId) {
@@ -51,12 +65,15 @@ public class ExportController {
             return e.getMessage();
         }
     }
+*/
 
 
     @GetMapping("/spr")
     public @ResponseBody
     String exportUserPersonEntity(@RequestParam(value = "startId", required = false) Long startId) {
         try {
+
+
 
             log.info("export zakon");
             // import org
@@ -69,9 +86,9 @@ public class ExportController {
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
-                List<ClsOrganization> resultList = importPsqlLexproService.convertOrgEntities(entities);
+                List<ClsOrganization> resultList = importOrgService.convertEntities((List<OrgEntity>) entities);
 
-                importPsqlLexproService.saveClsOrganization(resultList);
+                importOrgService.saveToDb(resultList);
 
                 size += entities.size();
                 startId += step;
@@ -89,9 +106,9 @@ public class ExportController {
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
-                List<ClsPosition> resultList = importPsqlLexproService.convertDoljnEntities(entities);
+                List<ClsPosition> resultList = importSpDoljnService.convertEntities((List<SpDoljnostEntity>) entities);
 
-                importPsqlLexproService.saveClsPosition(resultList);
+                importSpDoljnService.saveToDb(resultList);
 
                 size += entities.size();
                 startId += step;
@@ -108,17 +125,37 @@ public class ExportController {
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
 
-                List<ClsEmployee> resultList = importPsqlLexproService.convertPersonEntities(entities);
+                List<ClsEmployee> resultList = importPersonService.convertEntities((List<PersonEntity>) entities);
 
-                importPsqlLexproService.saveClsEmployee(resultList, (List< PersonEntity>)entities);
+                importPersonService.saveToDb(resultList);
 
                 size += entities.size();
                 startId += step;
             }
 
 
+            // import sp_fkind
+            entityName = "sp_fkind";
+            maxId = exportFbService.getMaxIdInTable(entityName);
+            startId = 0L;
+            if (startId == null) {
+                startId = 0L;
+            }
+            size = 0L;
+            while (startId < maxId) {
+                List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
+
+                List<ClsTypeAttachment> resultList = importSpFkindService.convertEntities((List<SpFkindEntity>) entities);
+
+                importSpFkindService.saveToDb(resultList);
+
+                size += entities.size();
+                startId += step;
+            }
+
+
+
             // import users
-/*
             entityName = "users";
             maxId = exportFbService.getMaxIdInTable(entityName);
             startId = 0L;
@@ -136,9 +173,8 @@ public class ExportController {
                 size += entities.size();
                 startId += step;
             }
-*/
 
-            return "Migration sp_doljnost, person, users complete.";
+            return "Migration spr complete.";
 
         } catch (Exception e) {
             e.printStackTrace();

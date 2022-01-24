@@ -69,6 +69,8 @@ public class TpRkkFile implements Serializable {
     private Long idFileSignature;
     @Column(name = "hash_signature")
     private String hashSignature;
+    @Column(name = "certificate_information")
+    private String certificateInformation;
 
 
     @Override

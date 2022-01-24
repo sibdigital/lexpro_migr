@@ -8,7 +8,7 @@ import ru.sibdigital.lexpro_migr.model.lexpro.ClsNpaType;
 import java.util.List;
 
 @Repository
-public interface ClsNpaTypeRepo extends JpaRepository<ClsNpaType, Long>, JpaSpecificationExecutor<ClsNpaType> {
+public interface ClsNpaTypeRepo extends JpaRepository<ClsNpaType, Long> {
 
     List<ClsNpaType> findAllByOrderByIdAsc();
 

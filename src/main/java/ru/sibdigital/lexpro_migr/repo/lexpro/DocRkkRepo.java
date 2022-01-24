@@ -2,9 +2,10 @@ package ru.sibdigital.lexpro_migr.repo.lexpro;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.sibdigital.lexpro_migr.model.lexpro.ClsEmployee;
+import ru.sibdigital.lexpro_migr.model.lexpro.DocRkk;
 
 @Repository
-public interface ClsEmployeeRepo extends JpaRepository<ClsEmployee, Long> {
+public interface DocRkkRepo extends JpaRepository<DocRkk, Long> {
+
 
 }

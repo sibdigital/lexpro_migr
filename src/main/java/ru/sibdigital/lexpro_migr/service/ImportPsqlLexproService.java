@@ -4,21 +4,29 @@ import com.vladmihalcea.hibernate.type.range.Range;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import ru.sibdigital.lexpro_migr.dto.FileContainer;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
 import ru.sibdigital.lexpro_migr.model.zakon.*;
 import ru.sibdigital.lexpro_migr.repo.lexpro.*;
 import ru.sibdigital.lexpro_migr.repo.zakon.PersonRepo;
+import ru.sibdigital.lexpro_migr.repo.zakon.UsersRepo;
+import ru.sibdigital.lexpro_migr.utils.FileUtils;
 import ru.sibdigital.lexpro_migr.utils.StrUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -26,6 +34,18 @@ import java.util.stream.Collectors;
 @Service
 public class ImportPsqlLexproService {
 
+    @Value("${upload.path}")
+    String uploadingDir;
+
+    //zakon.gdb
+    @Autowired
+    PersonRepo personRepo;
+
+    @Autowired
+    UsersRepo usersRepo;
+
+
+    //lexpro
     @Autowired
     @Qualifier("psqlLexproEntityManager")
     EntityManager psqlLexproEntityManager;
@@ -38,9 +58,6 @@ public class ImportPsqlLexproService {
 
     @Autowired
     ClsPositionRepo clsPositionRepo;
-
-    @Autowired
-    PersonRepo personRepo;
 
     @Autowired
     ClsOrganizationRepo clsOrganizationRepo;
@@ -57,7 +74,30 @@ public class ImportPsqlLexproService {
     @Autowired
     ClsSessionRepo clsSessionRepo;
 
-//    @Transactional("psqlLexproEntityManager")
+    @Autowired
+    DocRkkRepo docRkkRepo;
+
+    @Autowired
+    ClsGroupAttachmentRepo clsGroupAttachmentRepo;
+
+    @Autowired
+    ClsTypeAttachmentRepo clsTypeAttachmentRepo;
+
+    private static Map<Long, Long> fgroupIds = new HashMap<>();
+
+    public ImportPsqlLexproService(){
+        this.fgroupIds.put(1L, 1L);
+        this.fgroupIds.put(2L, 5L);
+        this.fgroupIds.put(3L, 4L);
+        this.fgroupIds.put(4L, 2L);
+        this.fgroupIds.put(5L, 2L);
+        this.fgroupIds.put(6L, 2L);
+        this.fgroupIds.put(7L, 3L);
+    }
+
+    //*************************** ORGS ******************************
+
+/*
     public void saveClsOrganization(List<ClsOrganization> list){
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         try{
@@ -97,7 +137,6 @@ public class ImportPsqlLexproService {
 
                         idMapRepo.save(idMap);
 
-                        //System.out.println("id: " + obj.getId() + ", path: " + obj.getPath());
                         log.info("new_id: " + parent.getId() + ", old_id: " + obj.getId());
 
                         orgCount.getAndIncrement();
@@ -182,9 +221,11 @@ public class ImportPsqlLexproService {
                 .build();
     }
 
+*/
 
     //*********************** PERSON *************************
 
+/*
     public List<ClsEmployee> convertPersonEntities(List<? extends Object> list){
         return list.stream()
                 .map(
@@ -251,6 +292,7 @@ public class ImportPsqlLexproService {
                         log.info("new_id: " + employee.getId() + ", old_id: " + obj.getId());
 
                         personCount.getAndIncrement();
+*/
 /*
                         // save reg_organization__employee
                         PersonEntity person = personEntities.stream()
@@ -270,7 +312,8 @@ public class ImportPsqlLexproService {
                                     .build();
 
                             psqlLexproEntityManager.persist(regOrganizationEmployee);
-                        }*/
+                        }*//*
+
                     } else {
                         log.info(obj.getId() + " - already saved");
                     }
@@ -284,6 +327,7 @@ public class ImportPsqlLexproService {
             log.info(entityName + " save error", e.getMessage());
         }
     }
+*/
 
     //*********************** USERS *************************
 
@@ -305,7 +349,7 @@ public class ImportPsqlLexproService {
 
         IdMap id = idMapRepo.findByEntityNameAndOldId("person", usersEntity.getPersonEntity().getId());
 
-        ClsEmployee empl = id != null ? clsEmployeeRepo.getOne(id.getNewId()) : null;
+        ClsEmployee empl = id != null ? clsEmployeeRepo.findById(id.getNewId()).orElse(null) : null;
 
         if(empl != null) {
             return ClsUser.builder()
@@ -314,7 +358,7 @@ public class ImportPsqlLexproService {
                     .firstname(empl.getFirstname())
                     .patronymic(empl.getPatronymic())
                     .login(usersEntity.getLogin())
-                    .idEmployee(empl.getId())
+//                    .idEmployee(empl.getId())
                     .build();
         } else {
             return null;
@@ -336,6 +380,7 @@ public class ImportPsqlLexproService {
                     if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
                         obj.setIsDeleted(false);
                         obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                        obj.setPassword("$2a$10$xLirbhZ9mchUlvlYXT/qrerSYswtiV/.F/9FwP4AA8Ka.29B0cAIO");
 
                         ClsUser user = psqlLexproEntityManager.merge(obj);
 
@@ -349,13 +394,13 @@ public class ImportPsqlLexproService {
 
                         log.info("new_id: " + user.getId() + ", old_id: " + obj.getId());
                         userCount.getAndIncrement();
-                        RegEmployeeUser regEmployeeUser = RegEmployeeUser.builder()
+/*                        RegEmployeeUser regEmployeeUser = RegEmployeeUser.builder()
                                 .user(user)
-                                .employee(clsEmployeeRepo.getOne(user.getIdEmployee()))
+                                .employee(clsEmployeeRepo.findById(user.getIdEmployee()).orElse(null))
                                 .timeCreate(new Timestamp(System.currentTimeMillis()))
                                 .build();
 
-                        psqlLexproEntityManager.persist(regEmployeeUser);
+                        psqlLexproEntityManager.persist(regEmployeeUser);*/
                     }
                 });
 
@@ -370,7 +415,7 @@ public class ImportPsqlLexproService {
 
     //*********************** SP_DOLJNOST *************************
 
-    public List<ClsPosition> convertDoljnEntities(List<? extends Object> list){
+/*    public List<ClsPosition> convertDoljnEntities(List<? extends Object> list){
         return list.stream()
                 .map(
                         obj -> {
@@ -435,7 +480,75 @@ public class ImportPsqlLexproService {
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+    }*/
+
+    //*********************** SP_FKIND *************************
+
+/*    public List<ClsTypeAttachment> convertSpFkindEntities(List<? extends Object> list){
+        return list.stream()
+                .map(
+                        obj -> {
+                            if(obj instanceof SpFkindEntity){
+                                return convertSpFkindEntityToClsTypeAttachment((SpFkindEntity) obj);
+                            }
+                            return null;
+                        }
+                )
+                .distinct()
+                .collect(Collectors.toList());
     }
+
+    private ClsTypeAttachment convertSpFkindEntityToClsTypeAttachment(SpFkindEntity spFkindEntity){
+        String code = StrUtils.transliterate(spFkindEntity.getName())
+                .toUpperCase()
+                .trim()
+                .replaceAll(" ", "_");
+        return ClsTypeAttachment.builder()
+                .id(spFkindEntity.getId())
+                .code(code.substring(0, code.length() > 25 ? 25 : code.length()))
+                .name(spFkindEntity.getName())
+                .isDeleted(false)
+                .build();
+    }
+
+    public void saveClsTypeAttachment(List<ClsTypeAttachment> list){
+        EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
+        transaction.begin();
+        String entityName = "sp_fkind";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger posCount = new AtomicInteger(0);
+        try {
+            list.stream()
+                    .filter(obj -> obj != null)
+                    .forEach(obj -> {
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            obj.setIsDeleted(false);
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+
+                            ClsTypeAttachment clsTypeAttachment = psqlLexproEntityManager.merge(obj);
+
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(clsTypeAttachment.getId())
+                                    .oldId(obj.getId())
+                                    .build();
+
+                            psqlLexproEntityManager.persist(idMap);
+
+                            log.info("new_id: " + clsTypeAttachment.getId() + ", old_id: " + obj.getId());
+                            posCount.getAndIncrement();
+                        }
+                    });
+
+            transaction.commit();
+            log.info(entityName + " save complete. count: " + posCount.get());
+        } catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            log.info(entityName + " save error", e.getMessage());
+        }
+    }*/
 
 
     //*********************** DOCUMS *************************
@@ -456,7 +569,6 @@ public class ImportPsqlLexproService {
 
     private DocRkk convertDocumsEntityToDocRkk(DocumsEntity documsEntity){
 
-        //TODO build ClsSession()
         ClsSession clsSession = null;
         if(documsEntity.getSessiaNum() != null) {
             var sessionList = clsSessionRepo.findAllByDateAndNumberOrderByDate(documsEntity.getSessiaDate(), documsEntity.getSessiaNum());
@@ -473,13 +585,6 @@ public class ImportPsqlLexproService {
                 //psqlLexproEntityManager.persist(clsSession);
                 clsSessionRepo.saveAndFlush(clsSession);
             }
-        }
-
-        ClsNpaType npaType = null;
-        if(documsEntity.getDkind().getName().equalsIgnoreCase("закон")) {
-            npaType = ClsNpaType.builder().id(1L).build();
-        } else {
-            npaType = ClsNpaType.builder().id(2L).build();
         }
 
         ClsOrganization subject = null;
@@ -514,6 +619,48 @@ public class ImportPsqlLexproService {
             }
         }
 
+
+        return DocRkk.builder()
+                .id(documsEntity.getId())
+                .rkkNumber(documsEntity.getRegNum())
+                .npaName(documsEntity.getDescr())
+                .registrationDate(documsEntity.getRegDate())
+                .introductionDate(documsEntity.getDdate())
+                .npaType(getClsNpaType(documsEntity))
+                .legislativeBasis(documsEntity.getZakOsnova())
+                .lawSubject(subject)
+                .speaker(dokl)
+                .readyForSession((documsEntity.getRkkReady() != null && documsEntity.getRkkReady().equalsIgnoreCase("да")) ? true : false)
+                .responsibleOrganization(komitet)
+                .responsibleEmployee(otvestv)
+                .deadline(documsEntity.getControlDate())
+                .session(clsSession)
+                .includedInAgenda(documsEntity.getPovestDate())
+                .agendaNumber(documsEntity.getNpp())
+                .status(getDocumStatus(documsEntity))
+                .stage(getDocumStage(documsEntity))
+                .headSignature(documsEntity.getPrezidentPodpisDate())
+                .publicationDate(documsEntity.getOpublikDate())
+                .timeCreate(new Timestamp(System.currentTimeMillis()))
+                .timeUpdate(documsEntity.getEditDate())
+                .isArchived(false)
+                .isDeleted(documsEntity.getFlagDeleted().equalsIgnoreCase("T") ? true : false)
+                .sysPeriod(Range.openInfinite(ZonedDateTime.now()))
+                .isDeleted(false)
+                .build();
+    }
+
+    private ClsNpaType getClsNpaType(DocumsEntity documsEntity) {
+        ClsNpaType npaType = null;
+        if(documsEntity.getDkind().getName().equalsIgnoreCase("закон")) {
+            npaType = ClsNpaType.builder().id(1L).build();
+        } else {
+            npaType = ClsNpaType.builder().id(2L).build();
+        }
+        return npaType;
+    }
+
+    private ClsRkkStatus getDocumStatus(DocumsEntity documsEntity){
         ClsRkkStatus status = null;
 
         switch (documsEntity.getStatus()) {
@@ -525,34 +672,11 @@ public class ImportPsqlLexproService {
             case "Принят в первом чтении": status = ClsRkkStatus.builder().id(5L).build(); break;
         }
 
-        return DocRkk.builder()
-                .id(documsEntity.getId())
-                .rkkNumber(documsEntity.getRegNum())
-                .npaName(documsEntity.getDescr())
-                .registrationDate(documsEntity.getRegDate())
-                .introductionDate(documsEntity.getDdate())
-                .npaType(npaType)
-                .legislativeBasis(documsEntity.getZakOsnova())
-                .lawSubject(subject)
-                .speaker(dokl)
-                .readyForSession((documsEntity.getRkkReady() != null && documsEntity.getRkkReady().equalsIgnoreCase("да")) ? true : false)
-                .responsibleOrganization(komitet)
-                .responsibleEmployee(otvestv)
-                .deadline(documsEntity.getControlDate())
-                .session(clsSession)
-                .includedInAgenda(documsEntity.getPovestDate())
-                .agendaNumber(documsEntity.getNpp())
-                .status(status)
-                .stage(null)
-                .headSignature(documsEntity.getPrezidentPodpisDate())
-                .publicationDate(documsEntity.getOpublikDate())
-                .timeCreate(new Timestamp(System.currentTimeMillis()))
-                .timeUpdate(documsEntity.getEditDate())
-                .isArchived(false)
-                .isDeleted(documsEntity.getFlagDeleted().equalsIgnoreCase("T") ? true : false)
-                .sysPeriod(Range.openInfinite(ZonedDateTime.now()))
-                .isDeleted(false)
-                .build();
+        return status;
+    }
+
+    private ClsRkkStage getDocumStage(DocumsEntity documsEntity){
+        return null;
     }
 
     public void saveDocRkk(List<DocRkk> list){
@@ -569,8 +693,6 @@ public class ImportPsqlLexproService {
                         if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
                             obj.setIsDeleted(false);
                             obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
-
-                            //if(obj.getSession().getId() == null) psqlLexproEntityManager.persist(obj.getSession());
 
                             DocRkk docRkk = psqlLexproEntityManager.merge(obj);
 
@@ -603,7 +725,11 @@ public class ImportPsqlLexproService {
                 .map(
                         obj -> {
                             if(obj instanceof FilesEntity){
-                                return convertFilesEntityToTpRkkFile((FilesEntity) obj);
+                                try {
+                                    return convertFilesEntityToTpRkkFile((FilesEntity) obj);
+                                } catch (IOException e){
+                                    log.info(((FilesEntity) obj).getId() + " not saved");
+                                }
                             }
                             return null;
                         }
@@ -612,30 +738,183 @@ public class ImportPsqlLexproService {
                 .collect(Collectors.toList());
     }
 
-    private TpRkkFile convertFilesEntityToTpRkkFile(FilesEntity filesEntity) {
+    private TpRkkFile convertFilesEntityToTpRkkFile(FilesEntity filesEntity) throws IOException {
 
-        return null;
-/*        return TpRkkFile.builder()
-                .docRkk(getDocRkk(fileDto))
-                .group(getGroupAttachment(fileDto))
-                .type(getTypeAttachment(fileDto))
-                .participant(getOrganization(fileDto))
-                .numberAttachment(fileDto.getNumberAttachment())
-                .signingDate(null)
-                .pageCount(filesEntity.getPageCount())
-                .attachmentPath(filesEntity.getAttachmentPath())
-                .fileName(filesEntity.getFileName())
-                .originalFileName(filesEntity.getOriginalFileName())
-                .fileExtension(filesEntity.getFileExtension())
-                .hash(filesEntity.getHash())
-                .fileSize(filesEntity.getFileSize())
-                .operator(getEmployee(fileDto))
-                .isDeleted(false)
-                .timeCreate(new Timestamp(System.currentTimeMillis()))
-                .hashSignature(fileDto.getHashSignature())
-                .idFileSignature()
-                .certificateInformation(fileDto.getCertificateInformation())
-                .build();*/
+        DocRkk doc = getDocRkk(filesEntity);
+
+        if(doc != null && filesEntity.getFname() != null) {
+            // составить относительный путь
+            final String originalFilename = filesEntity.getFname();
+            final String extension = filesEntity.getFext();
+
+            final String directory = "rkk" + File.separator + doc.getId();
+            final File folder = getSavingDirectory(directory);
+
+            final String prefix = doc.getId().toString();
+            final String randomUUID = UUID.randomUUID().toString();
+
+            FileContainer container = getFileContainer(originalFilename, extension, directory, folder, prefix, randomUUID);
+
+            // сохранить файл
+            if(filesEntity.getFdata() != null) {
+                saveToFile(container.getFile(), filesEntity.getFdata());
+                getFileParameters(container);
+            }
+
+            return TpRkkFile.builder()
+                    .id(filesEntity.getId())
+                    .docRkk(getDocRkk(filesEntity))
+                    .group(getGroupAttachment(filesEntity))
+                    .type(getTypeAttachment(filesEntity))
+                    .participant(getParticipant(filesEntity))
+                    .numberAttachment(filesEntity.getDnum())
+                    .signingDate(null)
+                    .pageCount(filesEntity.getPageCount())
+                    .attachmentPath(container.getAttachmentPath())
+                    .fileName(container.getFileName())
+                    .originalFileName(filesEntity.getFname())
+                    .fileExtension(filesEntity.getFext())
+                    .hash(filesEntity.getMd5Sum())
+                    .fileSize(container.getFileSize())
+                    .operator(getOperator(filesEntity.getEditorLogin()))
+                    .isDeleted(false)
+                    .timeCreate(new Timestamp(System.currentTimeMillis()))
+                    .hashSignature(null)
+                    .idFileSignature(null)
+                    .certificateInformation(filesEntity.getEcpDescr())
+                    .build();
+
+        } else {
+            return null;
+        }
+    }
+
+    private String getAbsolutePath(File folder, String filename) {
+        String absolutePath = folder.getAbsolutePath() + File.separator + filename;
+
+        return absolutePath;
+    }
+
+    private String getRelativePath(String directory, String filename) {
+        String relativePath = directory + File.separator + filename;
+
+        return relativePath;
+    }
+
+    private FileContainer getFileContainer(String originalFilename, String extension, String directory, File folder,
+                                           String prefix, String randomUUID) {
+
+        final String filename = prefix + "_" + randomUUID + extension;
+        final String absolutePath = getAbsolutePath(folder, filename);
+        final String relativePath = getRelativePath(directory, filename);
+
+        File file = new File(absolutePath);
+        FileContainer container = createFileContainer(relativePath, filename, originalFilename, extension, file);
+
+        return container;
+    }
+
+    private FileContainer createFileContainer(String relativePath, String filename, String originalFilename,
+                                              String extension, File file) {
+
+        FileContainer container = FileContainer.builder()
+                .attachmentPath(relativePath)
+                .fileName(filename)
+                .originalFileName(originalFilename)
+                .fileExtension(extension)
+                .file(file)
+                .build();
+
+        return container;
+    }
+
+    private File getSavingDirectory(String directory) {
+        String filepath = uploadingDir + File.separator + directory;
+        File folder = new File(filepath);
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        return folder;
+    }
+
+    private void getFileParameters(FileContainer container) throws IOException {
+//        final Integer pageCount = FileUtils.getPageCount(container.getFile(), container.getFileExtension());
+        final String fileHash = FileUtils.getFileHash(container.getFile());
+        final long fileSize = Files.size(container.getFile().toPath());
+
+        //container.setPageCount(pageCount);
+        container.setHash(fileHash);
+        container.setFileSize(fileSize);
+    }
+
+
+    private DocRkk getDocRkk(FilesEntity filesEntity){
+        DocRkk docRkk = null;
+        if(filesEntity.getDocumId() != null) {
+            IdMap doc = idMapRepo.findByEntityNameAndOldId("docums", filesEntity.getDocumId());
+            if (doc != null) {
+                docRkk = docRkkRepo.findById(doc.getNewId()).orElse(null);
+            }
+        }
+        return docRkk;
+    }
+
+    private ClsGroupAttachment getGroupAttachment(FilesEntity filesEntity){
+        if(filesEntity.getFgroupId() != null) {
+            Long newId = fgroupIds.containsKey(filesEntity.getFgroupId()) ? fgroupIds.get(filesEntity.getFgroupId()) : -1L;
+            return clsGroupAttachmentRepo.findById(newId).orElse(null);
+        } else {
+            return null;
+        }
+    }
+
+    private ClsTypeAttachment getTypeAttachment(FilesEntity filesEntity){
+        ClsTypeAttachment typeAttachment = null;
+        if(filesEntity.getDocumId() != null) {
+            IdMap doc = idMapRepo.findByEntityNameAndOldId("sp_fkind", filesEntity.getFkindId());
+            if (doc != null) {
+                typeAttachment = clsTypeAttachmentRepo.findById(doc.getNewId()).orElse(null);
+            }
+        }
+        return typeAttachment;
+    }
+
+    private ClsOrganization getParticipant(FilesEntity filesEntity){
+        ClsOrganization participant = null;
+        if(filesEntity.getOrgId() != null) {
+            IdMap kom = idMapRepo.findByEntityNameAndOldId("org", filesEntity.getOrgId());
+            if (kom != null) {
+                participant = ClsOrganization.builder().id(kom.getNewId()).build();
+            }
+        }
+        return participant;
+    }
+
+    private ClsEmployee getOperator(String login){
+        ClsEmployee result = null;
+        UsersEntity user = usersRepo.findByLogin(login).orElse(null);
+        if(user != null){
+            PersonEntity person = personRepo.findById(user.getPersonEntity().getId()).orElse(null);
+            if(person != null){
+                IdMap doc = idMapRepo.findByEntityNameAndOldId("person", person.getId());
+                if (doc != null) {
+                    result = clsEmployeeRepo.findById(doc.getNewId()).orElse(null);
+                }
+            }
+        }
+        return result;
+    }
+
+    private void saveToFile(File file, byte[] fileData){
+        try (FileOutputStream fos = new FileOutputStream(file))
+        {
+            fos.write(fileData);
+            log.info("Successfully written data to the file: " + file.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void saveTpRkkFile(List<TpRkkFile> list){
@@ -676,4 +955,74 @@ public class ImportPsqlLexproService {
         }
     }
 
+    //******************************* MESSAGES **************************************
+
+/*
+    public List<ClsTypeAttachment> convertSpFkindEntities(List<? extends Object> list){
+        return list.stream()
+                .map(
+                        obj -> {
+                            if(obj instanceof SpFkindEntity){
+                                return convertSpFkindEntityToClsTypeAttachment((SpFkindEntity) obj);
+                            }
+                            return null;
+                        }
+                )
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private ClsTypeAttachment convertSpFkindEntityToClsTypeAttachment(SpFkindEntity spFkindEntity){
+        String code = StrUtils.transliterate(spFkindEntity.getName())
+                .toUpperCase()
+                .trim()
+                .replaceAll(" ", "_");
+        return ClsTypeAttachment.builder()
+                .id(spFkindEntity.getId())
+                .code(code.substring(0, code.length() > 25 ? 25 : code.length()))
+                .name(spFkindEntity.getName())
+                .isDeleted(false)
+                .build();
+    }
+
+    public void saveClsTypeAttachment(List<ClsTypeAttachment> list){
+        EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
+        transaction.begin();
+        String entityName = "sp_fkind";
+        log.info("Entity : " + entityName);
+        log.info("source count: " + list.size());
+        AtomicInteger posCount = new AtomicInteger(0);
+        try {
+            list.stream()
+                    .filter(obj -> obj != null)
+                    .forEach(obj -> {
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            obj.setIsDeleted(false);
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+
+                            ClsTypeAttachment clsTypeAttachment = psqlLexproEntityManager.merge(obj);
+
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(clsTypeAttachment.getId())
+                                    .oldId(obj.getId())
+                                    .build();
+
+                            psqlLexproEntityManager.persist(idMap);
+
+                            log.info("new_id: " + clsTypeAttachment.getId() + ", old_id: " + obj.getId());
+                            posCount.getAndIncrement();
+                        }
+                    });
+
+            transaction.commit();
+            log.info(entityName + " save complete. count: " + posCount.get());
+        } catch (Exception e){
+            e.printStackTrace();
+            transaction.rollback();
+            log.info(entityName + " save error", e.getMessage());
+        }
+    }
+
+*/
 }

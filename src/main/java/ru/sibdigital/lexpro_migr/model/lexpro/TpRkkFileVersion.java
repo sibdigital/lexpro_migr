@@ -237,7 +237,7 @@ public class TpRkkFileVersion implements Serializable {
         this.fileSize = rkkFile.getFileSize();
         this.operator = rkkFile.getOperator();
         this.timeCreate = rkkFile.getTimeCreate();
-        this.isDeleted = rkkFile.getDeleted();
+        this.isDeleted = rkkFile.getIsDeleted();
         this.idFileSignature = rkkFile.getIdFileSignature();
         this.hashSignature = rkkFile.getHashSignature();
     }

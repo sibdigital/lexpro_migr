@@ -9,7 +9,7 @@ import ru.sibdigital.lexpro_migr.model.lexpro.ClsOrganization;
 import java.util.List;
 
 @Repository
-public interface ClsOrganizationRepo extends JpaRepository<ClsOrganization, Long>, JpaSpecificationExecutor<ClsOrganization> {
+public interface ClsOrganizationRepo extends JpaRepository<ClsOrganization, Long> {
 
     List<ClsOrganization> findAllByOrderByIdAsc();
 

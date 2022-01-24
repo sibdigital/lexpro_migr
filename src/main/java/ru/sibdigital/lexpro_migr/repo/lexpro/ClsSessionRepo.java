@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @Repository
-public interface ClsSessionRepo extends JpaRepository<ClsSession, Long>, JpaSpecificationExecutor<ClsSession> {
+public interface ClsSessionRepo extends JpaRepository<ClsSession, Long> {
 
     List<ClsSession> findAllByOrderByIdAsc();
 
