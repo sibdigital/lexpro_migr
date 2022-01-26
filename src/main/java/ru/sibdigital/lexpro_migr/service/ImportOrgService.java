@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.sibdigital.lexpro_migr.model.lexpro.ClsOrganization;
 import ru.sibdigital.lexpro_migr.model.lexpro.IdMap;
 import ru.sibdigital.lexpro_migr.model.zakon.OrgEntity;
+import ru.sibdigital.lexpro_migr.protocol.CheckProtocol;
 import ru.sibdigital.lexpro_migr.repo.lexpro.ClsOrganizationTypeRepo;
 
 import javax.persistence.EntityTransaction;
@@ -39,16 +40,17 @@ public class ImportOrgService extends ImportService<OrgEntity, ClsOrganization> 
     }
 
     @Override
-    public void saveToDb(List<ClsOrganization> list) {
+    public Integer saveToDb(List<ClsOrganization> list) {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
+        AtomicInteger orgCount = new AtomicInteger(0);
         try{
             transaction.begin();
 
-            AtomicInteger orgCount = new AtomicInteger(0);
+            AtomicInteger repeatCount = new AtomicInteger(0);
             log.info("Entity: " + entityName);
             log.info("source count: " + list.size());
             List<ClsOrganization> parentList = list.stream()
-                    .filter(obj -> obj.getIdParent() == null)
+                    .filter(obj -> obj != null && obj.getIdParent() == null)
                     .map(obj -> {
 
                         if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
@@ -84,6 +86,7 @@ public class ImportOrgService extends ImportService<OrgEntity, ClsOrganization> 
 
                         } else {
                             log.info("old_id: " + obj.getId() + " - already migration");
+                            repeatCount.getAndIncrement();
                             return null;
                         }
                     })
@@ -99,39 +102,50 @@ public class ImportOrgService extends ImportService<OrgEntity, ClsOrganization> 
 
                     if ((obj.getIdParent() != null) && (parentList.get(finalI) != null) && (obj.getIdParent() == parentList.get(finalI).getOldId())) {
 
-                        log.info("id: " + obj.getId() + ", parentId: " + parentList.get(finalI).getId());
-                        obj.setIdParent(parentList.get(finalI).getId());
-                        obj.setEmail("mail@govrb.ru");
-                        obj.setFullName(obj.getName());
-                        obj.setOrganizationType(clsOrganizationTypeRepo.getOne(2L));
-                        obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
-                        obj.setIsActivated(false);
-                        obj.setIsDeleted(false);
+                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
+                            log.info("id: " + obj.getId() + ", parentId: " + parentList.get(finalI).getId());
+                            obj.setIdParent(parentList.get(finalI).getId());
+                            obj.setEmail("mail@govrb.ru");
+                            obj.setFullName(obj.getName());
+                            obj.setOrganizationType(clsOrganizationTypeRepo.getOne(2L));
+                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
+                            obj.setIsActivated(false);
+                            obj.setIsDeleted(false);
 
-                        ClsOrganization childOrg = psqlLexproEntityManager.merge(obj);
+                            ClsOrganization childOrg = psqlLexproEntityManager.merge(obj);
 
-                        childOrg.setPath(parentList.get(finalI).getId().toString().concat(".").concat(childOrg.getId().toString()));
+                            childOrg.setPath(parentList.get(finalI).getId().toString().concat(".").concat(childOrg.getId().toString()));
 
-                        psqlLexproEntityManager.merge(childOrg);
+                            psqlLexproEntityManager.merge(childOrg);
 
-                        IdMap idMap = IdMap.builder()
-                                .entityName(entityName)
-                                .newId(childOrg.getId())
-                                .oldId(obj.getId())
-                                .build();
+                            IdMap idMap = IdMap.builder()
+                                    .entityName(entityName)
+                                    .newId(childOrg.getId())
+                                    .oldId(obj.getId())
+                                    .build();
 
-                        psqlLexproEntityManager.persist(idMap);
+                            psqlLexproEntityManager.persist(idMap);
 
-                        orgCount.getAndIncrement();
+                            orgCount.getAndIncrement();
+
+                        } else {
+                            repeatCount.getAndIncrement();
+                        }
                     }
                 }
             }
             transaction.commit();
             log.info("save complete. Saved org count: " + orgCount.get());
+            CheckProtocol.getInstance().addRow("сохранено записей в БД: " + orgCount.get());
+            CheckProtocol.getInstance().addRow("пропущено повторов: " + repeatCount.get());
+
         } catch (Exception e){
             e.printStackTrace();
             transaction.rollback();
             log.info("save error", e.getMessage());
+            CheckProtocol.getInstance().addRow("ошибка при записи: " + e.getMessage());
         }
+
+        return orgCount.get();
     }
 }

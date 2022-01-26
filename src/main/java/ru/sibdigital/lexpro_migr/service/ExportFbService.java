@@ -12,6 +12,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import java.io.File;
 import java.util.List;
 
 @Service
@@ -27,10 +28,11 @@ public class ExportFbService {
     private final String modelPackage = "ru.sibdigital.lexpro_migr.model.zakon";
 
     public List<?> getEntities(String dir, String tableName, Long startId, Long endId) {
-        String filePath = fileService.findFileBySubstrName(dir, "export_" + tableName + ".sql");
+        //String filePath = fileService.findFileBySubstrName(dir, "export_" + tableName + ".sql");
+
         Class clazz = ClassUtils.getClassByTableName(modelPackage, tableName);
 
-        String queryString = fileService.getStringFromFile(dir + "/" + filePath);
+        String queryString = fileService.getStringFromFile(dir + File.separator + "export_" + tableName + ".sql");
         Query query = fbZakonEntityManager.createNativeQuery(queryString, clazz);
         query.setParameter("start", startId);
         query.setParameter("end", endId);

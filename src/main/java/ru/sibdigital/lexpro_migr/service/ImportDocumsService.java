@@ -143,7 +143,7 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
     }
 
     @Override
-    public void saveToDb(List<DocRkk> list) {
+    public Integer saveToDb(List<DocRkk> list) {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
         String entityName = "docums";
@@ -179,5 +179,7 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+
+        return posCount.get();
     }
 }

@@ -43,7 +43,7 @@ public class ImportPersonService extends ImportService<PersonEntity, ClsEmployee
     }
 
     @Override
-    public void saveToDb(List<ClsEmployee> list) {
+    public Integer saveToDb(List<ClsEmployee> list) {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
 
@@ -104,5 +104,7 @@ public class ImportPersonService extends ImportService<PersonEntity, ClsEmployee
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+
+        return personCount.get();
     }
 }

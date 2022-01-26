@@ -266,7 +266,7 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
         }
     }
 
-    public void saveTpRkkFile(List<TpRkkFile> list){
+    public Integer saveTpRkkFile(List<TpRkkFile> list){
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
         String entityName = "files";
@@ -302,76 +302,6 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+        return posCount.get();
     }
-
-    //******************************* MESSAGES **************************************
-
-/*
-    public List<ClsTypeAttachment> convertSpFkindEntities(List<? extends Object> list){
-        return list.stream()
-                .map(
-                        obj -> {
-                            if(obj instanceof SpFkindEntity){
-                                return convertSpFkindEntityToClsTypeAttachment((SpFkindEntity) obj);
-                            }
-                            return null;
-                        }
-                )
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    private ClsTypeAttachment convertSpFkindEntityToClsTypeAttachment(SpFkindEntity spFkindEntity){
-        String code = StrUtils.transliterate(spFkindEntity.getName())
-                .toUpperCase()
-                .trim()
-                .replaceAll(" ", "_");
-        return ClsTypeAttachment.builder()
-                .id(spFkindEntity.getId())
-                .code(code.substring(0, code.length() > 25 ? 25 : code.length()))
-                .name(spFkindEntity.getName())
-                .isDeleted(false)
-                .build();
-    }
-
-    public void saveClsTypeAttachment(List<ClsTypeAttachment> list){
-        EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
-        transaction.begin();
-        String entityName = "sp_fkind";
-        log.info("Entity : " + entityName);
-        log.info("source count: " + list.size());
-        AtomicInteger posCount = new AtomicInteger(0);
-        try {
-            list.stream()
-                    .filter(obj -> obj != null)
-                    .forEach(obj -> {
-                        if(idMapRepo.findByEntityNameAndOldId(entityName, obj.getId()) == null) {
-                            obj.setIsDeleted(false);
-                            obj.setTimeCreate(new Timestamp(System.currentTimeMillis()));
-
-                            ClsTypeAttachment clsTypeAttachment = psqlLexproEntityManager.merge(obj);
-
-                            IdMap idMap = IdMap.builder()
-                                    .entityName(entityName)
-                                    .newId(clsTypeAttachment.getId())
-                                    .oldId(obj.getId())
-                                    .build();
-
-                            psqlLexproEntityManager.persist(idMap);
-
-                            log.info("new_id: " + clsTypeAttachment.getId() + ", old_id: " + obj.getId());
-                            posCount.getAndIncrement();
-                        }
-                    });
-
-            transaction.commit();
-            log.info(entityName + " save complete. count: " + posCount.get());
-        } catch (Exception e){
-            e.printStackTrace();
-            transaction.rollback();
-            log.info(entityName + " save error", e.getMessage());
-        }
-    }
-
-*/
 }

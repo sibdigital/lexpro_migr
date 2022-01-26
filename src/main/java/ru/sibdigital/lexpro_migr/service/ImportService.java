@@ -3,6 +3,7 @@ package ru.sibdigital.lexpro_migr.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
 import ru.sibdigital.lexpro_migr.repo.lexpro.IdMapRepo;
 
@@ -10,6 +11,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public abstract class ImportService<S, T> {
 
     @Value("${upload.path}")
@@ -31,12 +33,7 @@ public abstract class ImportService<S, T> {
     public List<T> convertEntities(List<S> list) {
         return list.stream()
                 .map(
-                        obj -> {
-                            if(obj instanceof PersonEntity){
-                                return convertEntity((S) obj);
-                            }
-                            return null;
-                        }
+                        obj -> convertEntity((S) obj)
                 )
                 .distinct()
                 .collect(Collectors.toList());
@@ -46,7 +43,8 @@ public abstract class ImportService<S, T> {
         return null;
     }
 
-    public void saveToDb(List<T> list) {
+    public Integer saveToDb(List<T> list) {
+        return 0;
     }
 
 }

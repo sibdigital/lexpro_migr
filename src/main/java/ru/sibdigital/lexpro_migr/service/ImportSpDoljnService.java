@@ -38,7 +38,7 @@ public class ImportSpDoljnService extends ImportService<SpDoljnostEntity, ClsPos
     }
 
     @Override
-    public void saveToDb(List<ClsPosition> list) {
+    public Integer saveToDb(List<ClsPosition> list) {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
         log.info("Entity : " + entityName);
@@ -73,5 +73,7 @@ public class ImportSpDoljnService extends ImportService<SpDoljnostEntity, ClsPos
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+
+        return posCount.get();
     }
 }

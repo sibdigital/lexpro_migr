@@ -37,7 +37,7 @@ public class ImportSpFkindService extends ImportService<SpFkindEntity, ClsTypeAt
     }
 
     @Override
-    public void saveToDb(List<ClsTypeAttachment> list) {
+    public Integer saveToDb(List<ClsTypeAttachment> list) {
         EntityTransaction transaction = psqlLexproEntityManager.getTransaction();
         transaction.begin();
         log.info("Entity : " + entityName);
@@ -73,5 +73,7 @@ public class ImportSpFkindService extends ImportService<SpFkindEntity, ClsTypeAt
             transaction.rollback();
             log.info(entityName + " save error", e.getMessage());
         }
+
+        return posCount.get();
     }
 }
