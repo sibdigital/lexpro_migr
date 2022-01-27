@@ -2,6 +2,7 @@ package ru.sibdigital.lexpro_migr.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
 import ru.sibdigital.lexpro_migr.model.zakon.*;
@@ -38,7 +39,9 @@ public class ImportController {
     ImportDocumsService importDocumsService;
 
     private final String dir = "classpath:sql-scripts/export_data";
-    private final Long step = 1000L;
+
+    @Value("${step:1000}")
+    private Long step;
 
     private CheckProtocol checkProtocol = CheckProtocol.getInstance();
 
@@ -53,7 +56,6 @@ public class ImportController {
                 startId = 0L;
             }
             checkProtocol.addRow("импорт организаций: startId: " + startId + ", maxId: " + maxId + ", step: " + step);
-            Long size = 0L;
             Integer srcCount = 0;
             Integer saveCount = 0;
             while (startId < maxId) {
@@ -66,7 +68,6 @@ public class ImportController {
 
                 saveCount += importOrgService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
 
@@ -82,7 +83,7 @@ public class ImportController {
             if (startId == null) {
                 startId = 0L;
             }
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
                 //checkProtocol.addRow(String.format("выбрано записей: %d, startId: %d, endId: %d", entities.size(), startId, startId + step));
@@ -92,7 +93,6 @@ public class ImportController {
 
                 saveCount += importSpDoljnService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
 
@@ -108,8 +108,7 @@ public class ImportController {
             if (startId == null) {
                 startId = 0L;
             }
-            size = 0L;
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
 
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
@@ -119,7 +118,6 @@ public class ImportController {
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 saveCount += importPersonService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
             checkProtocol.addRow("--- всего выбрано из исходной БД записей: " + srcCount);
@@ -134,8 +132,7 @@ public class ImportController {
             if (startId == null) {
                 startId = 0L;
             }
-            size = 0L;
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
 
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
@@ -145,7 +142,6 @@ public class ImportController {
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 importSpFkindService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
             checkProtocol.addRow("--- всего выбрано из исходной БД записей: " + srcCount);
@@ -160,8 +156,7 @@ public class ImportController {
             if (startId == null) {
                 startId = 0L;
             }
-            size = 0L;
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
                 //checkProtocol.addRow(String.format("выбрано записей: %d, startId: %d, endId: %d", entities.size(), startId, startId + step));
@@ -170,7 +165,6 @@ public class ImportController {
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 importUsersService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
             checkProtocol.addRow("--- всего выбрано из исходной БД записей: " + srcCount);
@@ -227,8 +221,7 @@ public class ImportController {
             }
             Integer saveCount = 0;
             Integer srcCount = 0;
-            Long size = 0L;
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
                 //checkProtocol.addRow("выбрано записей: " + entities.size());
@@ -239,8 +232,8 @@ public class ImportController {
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 saveCount += importFilesService.saveTpRkkFile(resultList);
 
-                size += entities.size();
                 startId += step;
+
             }
 
             checkProtocol.addRow("--- всего выбрано из исходной БД записей: " + srcCount);

@@ -194,7 +194,7 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
         final long fileSize = Files.size(container.getFile().toPath());
 
         //container.setPageCount(pageCount);
-        container.setHash(fileHash);
+        //container.setHash(fileHash);
         container.setFileSize(fileSize);
     }
 
