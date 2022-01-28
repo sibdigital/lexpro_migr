@@ -19,10 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -65,17 +62,22 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
 
     @Override
     public List<TpRkkFile> convertEntities(List<FilesEntity> list){
+        var destList = new ArrayList<TpRkkFile>();
+        for(FilesEntity filesEntity : list){
+            destList.add(convertEntity(filesEntity));
+        }
+
+        list = null;
+
+        return destList;
+/*
         return list.stream()
                 .map(
-                        obj -> {
-                            if(obj instanceof FilesEntity){
-                                return convertEntity((FilesEntity) obj);
-                            }
-                            return null;
-                        }
+                        obj -> convertEntity(obj)
                 )
                 .distinct()
                 .collect(Collectors.toList());
+*/
     }
 
     @Override
@@ -87,22 +89,22 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
 
         if(doc != null && filesEntity.getFname() != null) {
             // составить относительный путь
-            final String originalFilename = filesEntity.getFname();
-            final String extension = filesEntity.getFext();
+            String originalFilename = filesEntity.getFname();
+            String extension = filesEntity.getFext();
 
-            final String directory = "rkk" + File.separator + doc.getId();
-            final File folder = getSavingDirectory(directory);
+            String directory = "rkk" + File.separator + doc.getId();
+            File folder = getSavingDirectory(directory);
 
-            final String prefix = doc.getId().toString();
-            final String randomUUID = UUID.randomUUID().toString();
+            String prefix = doc.getId().toString();
+            String randomUUID = UUID.randomUUID().toString();
 
             FileContainer container = getFileContainer(originalFilename, extension, directory, folder, prefix, randomUUID);
 
             try {
                 // сохранить файл
                 if (filesEntity.getFdata() != null) {
-                    saveToFile(container.getFile(), filesEntity.getFdata());
-                    getFileParameters(container);
+                    //saveToFile(container.getFile(), filesEntity.getFdata());
+                    //getFileParameters(container);
 
                     tpRkkFile = TpRkkFile.builder()
                             .id(filesEntity.getId())
@@ -129,12 +131,25 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
                 } else {
                     log.info(filesEntity.getId() + ": пустое значение fdata");
                 }
-            } catch (IOException e) {
+
+                container = null;
+
+                originalFilename = null;
+                extension = null;
+
+                directory = null;
+                folder = null;
+
+                prefix = null;
+                randomUUID = null;
+
+            } catch (Exception e) {
                 log.error("Files.convertEntity", e.getMessage());
                 log.info(filesEntity.getId() + " not saved");
             }
         }
 
+        doc = null;
         return tpRkkFile;
     }
 

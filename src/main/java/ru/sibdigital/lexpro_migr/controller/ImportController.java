@@ -222,13 +222,16 @@ public class ImportController {
             Integer saveCount = 0;
             Integer srcCount = 0;
             checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
+            List<?> entities = null;
+            List<TpRkkFile> resultList = null;
             while (startId < maxId) {
-                List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
+                entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
                 //checkProtocol.addRow("выбрано записей: " + entities.size());
                 srcCount += entities.size();
                 log.info("converting start");
-                List<TpRkkFile> resultList = importFilesService.convertEntities((List<FilesEntity>) entities);
+                resultList = importFilesService.convertEntities((List<FilesEntity>) entities);
                 log.info("converting end");
+                entities = null;
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 saveCount += importFilesService.saveTpRkkFile(resultList);
 

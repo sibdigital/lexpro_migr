@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.sibdigital.lexpro_migr.utils.ClassUtils;
 
 import javax.persistence.EntityManager;
@@ -27,8 +28,11 @@ public class ExportFbService {
 
     private final String modelPackage = "ru.sibdigital.lexpro_migr.model.zakon";
 
+    @Transactional("fbTransactionManager")
     public List<?> getEntities(String dir, String tableName, Long startId, Long endId) {
         //String filePath = fileService.findFileBySubstrName(dir, "export_" + tableName + ".sql");
+
+        fbZakonEntityManager.clear();
 
         Class clazz = ClassUtils.getClassByTableName(modelPackage, tableName);
 
