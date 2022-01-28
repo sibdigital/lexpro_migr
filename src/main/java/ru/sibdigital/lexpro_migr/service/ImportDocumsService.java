@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import ru.sibdigital.lexpro_migr.model.lexpro.*;
 import ru.sibdigital.lexpro_migr.model.zakon.DocumsEntity;
 import ru.sibdigital.lexpro_migr.repo.lexpro.ClsNpaTypeRepo;
+import ru.sibdigital.lexpro_migr.repo.lexpro.ClsRkkStageRepo;
+import ru.sibdigital.lexpro_migr.repo.lexpro.ClsRkkStatusRepo;
 import ru.sibdigital.lexpro_migr.repo.lexpro.ClsSessionRepo;
+import ru.sibdigital.lexpro_migr.repo.zakon.FilesRepo;
 
 import javax.persistence.EntityTransaction;
 import java.sql.Timestamp;
@@ -24,6 +27,15 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
 
     @Autowired
     ClsSessionRepo clsSessionRepo;
+
+    @Autowired
+    ClsRkkStageRepo clsRkkStageRepo;
+
+    @Autowired
+    ClsRkkStatusRepo clsRkkStatusRepo;
+
+    @Autowired
+    FilesRepo filesRepo;
 
     private final static String entity = "docums";
 
@@ -46,7 +58,6 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
                         .timeCreate(new Timestamp(System.currentTimeMillis()))
                         .build();
 
-                //psqlLexproEntityManager.persist(clsSession);
                 clsSessionRepo.saveAndFlush(clsSession);
             }
         }
@@ -83,6 +94,8 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
             }
         }
 
+        StatStage documStatStage = getDocumStatStage(documsEntity);
+
         return DocRkk.builder()
                 .id(documsEntity.getId())
                 .rkkNumber(documsEntity.getRegNum())
@@ -100,8 +113,8 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
                 .session(clsSession)
                 .includedInAgenda(documsEntity.getPovestDate())
                 .agendaNumber(documsEntity.getNpp())
-                .status(getDocumStatus(documsEntity))
-                .stage(getDocumStage(documsEntity))
+                .status(documStatStage.status)
+                .stage(documStatStage.stage)
                 .headSignature(documsEntity.getPrezidentPodpisDate())
                 .publicationDate(documsEntity.getOpublikDate())
                 .timeCreate(new Timestamp(System.currentTimeMillis()))
@@ -123,24 +136,134 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         return npaType;
     }
 
-    private ClsRkkStatus getDocumStatus(DocumsEntity documsEntity){
-        ClsRkkStatus status = null;
+    private StatStage getDocumStatStage(DocumsEntity documsEntity){
+        StatStage statStage = new StatStage();
+        try {
 
-        switch (documsEntity.getStatus()) {
-            case "В работе": status = ClsRkkStatus.builder().id(1L).build(); break;
-            case "Отклонен": status = ClsRkkStatus.builder().id(4L).build(); break;
-            case "Отозван": status = ClsRkkStatus.builder().id(2L).build(); break;
-            case "Отправлен на доработку": status = ClsRkkStatus.builder().id(3L).build(); break;
-            case "Принят":
-            case "Принят в первом чтении": status = ClsRkkStatus.builder().id(5L).build(); break;
+            // default init
+            statStage.status = clsRkkStatusRepo.findByName(documsEntity.getStatus());
+            statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
+
+            if (checkInWorkStageA(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByName("IN_WORK");
+                statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
+            }
+            if (checkWithdrawn(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByName("WITHDRAWN");
+                statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
+            }
+            if (checkInWorkStageB(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByName("IN_WORK");
+                statStage.stage = clsRkkStageRepo.findByCode("PREPARATION_FOR_READING").orElseThrow(() -> new Exception("stage not found"));
+            }
+
+        } catch (Exception e){
+            log.error("getDocumStatStage", e.getMessage());
         }
-
-        return status;
+        return statStage;
     }
 
-    private ClsRkkStage getDocumStage(DocumsEntity documsEntity){
-        return null;
+    // условия для статуса в работе, стадия а
+    private Boolean checkInWorkStageA(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+            documsEntity.getStatus().equalsIgnoreCase("в работе")
+            && documsEntity.getPovestDate() == null
+            && documsEntity.getRkkReady() == null
+            && documsEntity.getPrezidentPodpisDate() == null
+            && documsEntity.getOpublikDate() == null
+            && documsEntity.getDatePuZ() == null
+            && documsEntity.getDatePuP() == null
+            && documsEntity.getDatePuP2() == null
+            && documsEntity.getDatePuT() == null
+            && documsEntity.getDatePu2Ch() == null
+            && documsEntity.getDatePrez() == null
+        ) {
+            check = true;
+        }
+        return check;
     }
+
+    // условия для статуса в работе, стадия б
+    private Boolean checkInWorkStageB(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+            (
+                documsEntity.getStatus().equalsIgnoreCase("в работе")
+                && documsEntity.getPovestDate() == null
+                && documsEntity.getRkkReady() == null
+                && documsEntity.getPrezidentPodpisDate() == null
+                && documsEntity.getOpublikDate() == null
+                && documsEntity.getDatePuZ() == null
+                && documsEntity.getDatePuP() == null
+                && documsEntity.getDatePuP2() == null
+                && documsEntity.getDatePuT() == null
+                && documsEntity.getDatePu2Ch() == null
+                && documsEntity.getDatePrez() == null
+                //НЕОБ, РЕК, К ЗАСЕД
+                && (
+                    filesRepo.existsByDocumIdAndFgroupIdInAndFdataIsNull(documsEntity.getId(), List.of(2L, 3L, 7L))
+                    ||
+                    documsEntity.getDatePuP() != null
+                    ||
+                    documsEntity.getDatePuZ() != null
+                )
+            )
+            ||
+            (
+                documsEntity.getStatus().equalsIgnoreCase("в работе")
+                && documsEntity.getPovestDate() != null
+                && documsEntity.getRkkReady() != null
+                && documsEntity.getPrezidentPodpisDate() == null
+                && documsEntity.getOpublikDate() == null
+                && documsEntity.getDatePuP2() == null
+                && documsEntity.getDatePuT() == null
+                && documsEntity.getDatePu2Ch() == null
+                && documsEntity.getDatePrez() == null
+                &&
+                (
+                    (
+                        documsEntity.getDatePuZ() != null
+                        && documsEntity.getDatePuP() != null
+                        && documsEntity.getDateDeputat() == null
+                        &&
+                        !filesRepo.existsByDocumIdAndFdataIsNull(documsEntity.getId())
+                    )
+                    ||
+                    (
+                        documsEntity.getDatePuZ() != null
+                        && documsEntity.getDateDeputat() != null
+                    )
+                )
+            )
+        ) {
+            check = true;
+        }
+        return check;
+    }
+
+
+
+    // условия для статуса отозван, стадия а
+    private Boolean checkWithdrawn(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+            documsEntity.getStatus().equalsIgnoreCase("отозван")
+            && documsEntity.getPovestDate() == null
+            && documsEntity.getRkkReady() == null
+            && documsEntity.getPrezidentPodpisDate() == null
+            && documsEntity.getOpublikDate() == null
+            && documsEntity.getDatePuZ() == null
+            && documsEntity.getDatePuP() == null
+            && documsEntity.getDatePuP2() == null
+            && documsEntity.getDatePuT() == null
+            && documsEntity.getDatePu2Ch() == null
+        ) {
+            check = true;
+        }
+        return check;
+    }
+
 
     @Override
     public Integer saveToDb(List<DocRkk> list) {
@@ -181,5 +304,11 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         }
 
         return posCount.get();
+    }
+
+
+    private class StatStage{
+        ClsRkkStatus status;
+        ClsRkkStage stage;
     }
 }
