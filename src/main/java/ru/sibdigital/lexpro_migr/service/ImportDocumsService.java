@@ -94,6 +94,7 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
             }
         }
 
+        // получение статуса и стадии
         StatStage documStatStage = getDocumStatStage(documsEntity);
 
         return DocRkk.builder()
@@ -119,9 +120,12 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
                 .publicationDate(documsEntity.getOpublikDate())
                 .timeCreate(new Timestamp(System.currentTimeMillis()))
                 .timeUpdate(documsEntity.getEditDate())
-                .isArchived(false)
+                .isArchived(documsEntity.getStatus().equalsIgnoreCase("Принят")
+                        && documsEntity.getFlagDeleted().equalsIgnoreCase("F")
+                        && (documsEntity.getZakonNum() != null)
+                )
                 .isDeleted(documsEntity.getFlagDeleted().equalsIgnoreCase("T") ? true : false)
-                .sysPeriod(Range.openInfinite(ZonedDateTime.now()))
+                .sysPeriod(Range.closedInfinite(ZonedDateTime.now()))
                 .isDeleted(false)
                 .build();
     }
@@ -141,20 +145,47 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         try {
 
             // default init
+/*
             statStage.status = clsRkkStatusRepo.findByName(documsEntity.getStatus());
+            if(statStage.status == null){
+                statStage.status = clsRkkStatusRepo.findByCode("IN_WORK");
+            }
             statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
+*/
 
-            if (checkInWorkStageA(documsEntity)) {
-                statStage.status = clsRkkStatusRepo.findByName("IN_WORK");
+            if (checkInWorkStageIntro(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("IN_WORK");
                 statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
             }
-            if (checkWithdrawn(documsEntity)) {
-                statStage.status = clsRkkStatusRepo.findByName("WITHDRAWN");
+            if (checkWithdrawnStageIntro(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("WITHDRAWN");
                 statStage.stage = clsRkkStageRepo.findByCode("INTRODUCTION").orElseThrow(() -> new Exception("stage not found"));
             }
-            if (checkInWorkStageB(documsEntity)) {
-                statStage.status = clsRkkStatusRepo.findByName("IN_WORK");
+            if (checkInWorkStagePreparationReading(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("IN_WORK");
                 statStage.stage = clsRkkStageRepo.findByCode("PREPARATION_FOR_READING").orElseThrow(() -> new Exception("stage not found"));
+            }
+            if (checkForMeetingStagePreparationReading1(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("FOR_MEETING");
+                statStage.stage = clsRkkStageRepo.findByCode("PREPARATION_FOR_READING").orElseThrow(() -> new Exception("stage not found"));
+            }
+            if (checkForMeetingStageReading1(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("FOR_MEETING");
+                statStage.stage = clsRkkStageRepo.findByCode("READING_1").orElseThrow(() -> new Exception("stage not found"));
+            }
+            if (checkAcceptedStageReading1(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("ACCEPTED");
+                statStage.stage = clsRkkStageRepo.findByCode("READING_1").orElseThrow(() -> new Exception("stage not found"));
+            }
+
+            if (checkAcceptedStageSigningLaw(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("ACCEPTED");
+                statStage.stage = clsRkkStageRepo.findByCode("SIGNING_LAW").orElseThrow(() -> new Exception("stage not found"));
+            }
+
+            if (checkRejectedStageRejectingLaw(documsEntity)) {
+                statStage.status = clsRkkStatusRepo.findByCode("REJECTED");
+                statStage.stage = clsRkkStageRepo.findByCode("REJECTING_LAW").orElseThrow(() -> new Exception("stage not found"));
             }
 
         } catch (Exception e){
@@ -163,8 +194,8 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         return statStage;
     }
 
-    // условия для статуса в работе, стадия а
-    private Boolean checkInWorkStageA(DocumsEntity documsEntity){
+    // в работе -> в работе, стадия а
+    private Boolean checkInWorkStageIntro(DocumsEntity documsEntity){
         Boolean check = false;
         if(
             documsEntity.getStatus().equalsIgnoreCase("в работе")
@@ -184,8 +215,8 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         return check;
     }
 
-    // условия для статуса в работе, стадия б
-    private Boolean checkInWorkStageB(DocumsEntity documsEntity){
+    // в работе -> в работе, стадия б
+    private Boolean checkInWorkStagePreparationReading(DocumsEntity documsEntity){
         Boolean check = false;
         if(
             (
@@ -194,15 +225,13 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
                 && documsEntity.getRkkReady() == null
                 && documsEntity.getPrezidentPodpisDate() == null
                 && documsEntity.getOpublikDate() == null
-                && documsEntity.getDatePuZ() == null
-                && documsEntity.getDatePuP() == null
                 && documsEntity.getDatePuP2() == null
                 && documsEntity.getDatePuT() == null
                 && documsEntity.getDatePu2Ch() == null
                 && documsEntity.getDatePrez() == null
                 //НЕОБ, РЕК, К ЗАСЕД
                 && (
-                    filesRepo.existsByDocumIdAndFgroupIdInAndFdataIsNull(documsEntity.getId(), List.of(2L, 3L, 7L))
+                    filesRepo.existsByDocumIdAndFgroupIdInAndFdataIsNull(documsEntity.getId(), List.of(3L, 4L, 5L))
                     ||
                     documsEntity.getDatePuP() != null
                     ||
@@ -226,8 +255,7 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
                         documsEntity.getDatePuZ() != null
                         && documsEntity.getDatePuP() != null
                         && documsEntity.getDateDeputat() == null
-                        &&
-                        !filesRepo.existsByDocumIdAndFdataIsNull(documsEntity.getId())
+                        && filesRepo.existsAllByDocumIdAndFgroupIdInAndFdataIsNotNull(documsEntity.getId(), List.of(3L, 4l, 5L))
                     )
                     ||
                     (
@@ -242,22 +270,217 @@ public class ImportDocumsService extends ImportService<DocumsEntity, DocRkk> {
         return check;
     }
 
+    // в работе -> к заседанию, стадия б
+    private Boolean checkForMeetingStagePreparationReading1(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                && documsEntity.getPovestDate() != null
+                                && documsEntity.getRkkReady() != null
+                                && documsEntity.getPrezidentPodpisDate() == null
+                                && documsEntity.getOpublikDate() == null
+                                && (documsEntity.getDatePuP() != null
+                                    || documsEntity.getDatePuZ() != null
+                                )
+                                && (
+                                //ПРИНЯТ
+                                    filesRepo.existsAllByDocumIdAndFgroupIdInAndFdataIsNotNull(documsEntity.getId(), List.of(5L))
+                                )
+                )
+        ) {
+            check = true;
+        }
+        return check;
+    }
 
+    // в работе -> к заседанию, стадия с
+    private Boolean checkForMeetingStageReading1(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                && documsEntity.getPovestDate() == null
+                                && documsEntity.getRkkReady() == null
+                                && documsEntity.getPrezidentPodpisDate() == null
+                                && documsEntity.getOpublikDate() == null
+                                && documsEntity.getDatePrez() == null
+                                && (
+                                //ПРИНЯТ
+                                filesRepo.existsByDocumIdAndFgroupIdInAndFdataIsNull(documsEntity.getId(), List.of(2L))
+                                        ||
+                                        documsEntity.getDatePuP() != null
+                                        ||
+                                        documsEntity.getDatePuZ() != null
+                                )
+                )
+                ||
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                && documsEntity.getPovestDate() == null
+                                && documsEntity.getRkkReady() == null
+                                && documsEntity.getPrezidentPodpisDate() == null
+                                && documsEntity.getOpublikDate() == null
+                                && documsEntity.getDatePrez() == null
+                                && filesRepo.existsByDocumIdAndFdataIsNull(documsEntity.getId())
+                                && (
+                                    documsEntity.getDateProkuror() != null
+                                    ||
+                                    documsEntity.getDateGu() != null
+                                    ||
+                                    documsEntity.getDateDeputat() != null
+                                )
+                )
+                ||
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                        && documsEntity.getPovestDate() != null
+                                        && documsEntity.getRkkReady() != null
+                                        && documsEntity.getPrezidentPodpisDate() == null
+                                        && documsEntity.getOpublikDate() == null
+                                        &&
+                                        (
+                                                (
+                                                        documsEntity.getDatePuZ() != null
+                                                                && documsEntity.getDatePuP() != null
+                                                                && documsEntity.getDateDeputat() == null
+                                                                && filesRepo.existsAllByDocumIdAndFgroupIdInAndFdataIsNotNull(documsEntity.getId(), List.of(2L, 3l, 7L))
+                                                )
+                                                        ||
+                                                        (
+                                                                documsEntity.getDatePuZ() != null
+                                                                        && documsEntity.getDateDeputat() != null
+                                                        )
+                                        )
+                        )
+        ) {
+            check = true;
+        }
+        return check;
+    }
 
-    // условия для статуса отозван, стадия а
-    private Boolean checkWithdrawn(DocumsEntity documsEntity){
+    // в работе -> к заседанию, стадия с
+    private Boolean checkAcceptedStageReading1(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("Принят в первом чтении")
+                                && documsEntity.getPovestDate() == null
+                                && documsEntity.getRkkReady() == null
+                                && documsEntity.getPrezidentPodpisDate() == null
+                                && documsEntity.getOpublikDate() == null
+                                && documsEntity.getDatePuZ() != null
+                                && documsEntity.getDatePuP() != null
+                                && documsEntity.getDatePuP2() == null
+                                && documsEntity.getDatePuT() == null
+                                && documsEntity.getDatePu2Ch() == null
+                                && documsEntity.getDatePrez() == null
+                                && (
+                                //ПРИНЯТ
+                                filesRepo.existsByDocumIdAndFgroupIdInAndFdataIsNull(documsEntity.getId(), List.of(2L))
+                                        ||
+                                        documsEntity.getDatePuP() != null
+                                        ||
+                                        documsEntity.getDatePuZ() != null
+                                )
+                )
+                ||
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                && documsEntity.getPovestDate() == null
+                                && documsEntity.getRkkReady() == null
+                                && documsEntity.getPrezidentPodpisDate() == null
+                                && documsEntity.getOpublikDate() == null
+                                && documsEntity.getDatePuZ() == null
+                                && documsEntity.getDatePuP() == null
+                                && documsEntity.getDatePuP2() == null
+                                && documsEntity.getDatePuT() == null
+                                && documsEntity.getDatePu2Ch() == null
+                                && documsEntity.getDatePrez() == null
+                                && filesRepo.existsByDocumIdAndFdataIsNull(documsEntity.getId())
+                                && (
+                                    documsEntity.getDateProkuror() != null
+                                    ||
+                                    documsEntity.getDateGu() != null
+                                    ||
+                                    documsEntity.getDateDeputat() != null
+                                )
+                )
+                ||
+                (
+                        documsEntity.getStatus().equalsIgnoreCase("в работе")
+                                        && documsEntity.getPovestDate() != null
+                                        && documsEntity.getRkkReady() != null
+                                        && documsEntity.getPrezidentPodpisDate() == null
+                                        && documsEntity.getOpublikDate() == null
+                                        && documsEntity.getDatePuP2() == null
+                                        && documsEntity.getDatePuT() == null
+                                        && documsEntity.getDatePu2Ch() == null
+                                        && documsEntity.getDatePrez() == null
+                                        &&
+                                        (
+                                                (
+                                                        documsEntity.getDatePuZ() != null
+                                                                && documsEntity.getDatePuP() != null
+                                                                && documsEntity.getDateDeputat() == null
+                                                                && filesRepo.existsAllByDocumIdAndFgroupIdInAndFdataIsNotNull(documsEntity.getId(), List.of(2L, 3l, 7L))
+                                                )
+                                                        ||
+                                                        (
+                                                                documsEntity.getDatePuZ() != null
+                                                                        && documsEntity.getDateDeputat() != null
+                                                        )
+                                        )
+                        )
+        ) {
+            check = true;
+        }
+        return check;
+    }
+
+    // принят / принят в 1м чт. -> принят, стадия подписание
+    private Boolean checkAcceptedStageSigningLaw(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+                (
+                        (documsEntity.getStatus().equalsIgnoreCase("Принят")
+                            || documsEntity.getStatus().equalsIgnoreCase("Принят в первом чтении")
+                        )
+                        && documsEntity.getPrezidentPodpisDate() != null
+                )
+        ) {
+            check = true;
+        }
+        return check;
+    }
+
+    // отклонен -> отклонен, стадия отклонение
+    private Boolean checkRejectedStageRejectingLaw(DocumsEntity documsEntity){
+        Boolean check = false;
+        if(
+                (
+                    documsEntity.getStatus().equalsIgnoreCase("Отклонен")
+                )
+        ) {
+            check = true;
+        }
+        return check;
+    }
+
+    // отозван -> отозван, стадия а
+    private Boolean checkWithdrawnStageIntro(DocumsEntity documsEntity){
         Boolean check = false;
         if(
             documsEntity.getStatus().equalsIgnoreCase("отозван")
-            && documsEntity.getPovestDate() == null
-            && documsEntity.getRkkReady() == null
-            && documsEntity.getPrezidentPodpisDate() == null
-            && documsEntity.getOpublikDate() == null
-            && documsEntity.getDatePuZ() == null
-            && documsEntity.getDatePuP() == null
-            && documsEntity.getDatePuP2() == null
-            && documsEntity.getDatePuT() == null
-            && documsEntity.getDatePu2Ch() == null
+//            && documsEntity.getPovestDate() == null
+//            && documsEntity.getRkkReady() == null
+//            && documsEntity.getPrezidentPodpisDate() == null
+//            && documsEntity.getOpublikDate() == null
+//            && documsEntity.getDatePuZ() == null
+//            && documsEntity.getDatePuP() == null
+//            && documsEntity.getDatePuP2() == null
+//            && documsEntity.getDatePuT() == null
+//            && documsEntity.getDatePu2Ch() == null
         ) {
             check = true;
         }

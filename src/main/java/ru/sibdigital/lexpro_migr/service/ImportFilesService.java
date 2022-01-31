@@ -8,7 +8,10 @@ import ru.sibdigital.lexpro_migr.model.lexpro.*;
 import ru.sibdigital.lexpro_migr.model.zakon.FilesEntity;
 import ru.sibdigital.lexpro_migr.model.zakon.PersonEntity;
 import ru.sibdigital.lexpro_migr.model.zakon.UsersEntity;
-import ru.sibdigital.lexpro_migr.repo.lexpro.*;
+import ru.sibdigital.lexpro_migr.repo.lexpro.ClsEmployeeRepo;
+import ru.sibdigital.lexpro_migr.repo.lexpro.ClsGroupAttachmentRepo;
+import ru.sibdigital.lexpro_migr.repo.lexpro.ClsTypeAttachmentRepo;
+import ru.sibdigital.lexpro_migr.repo.lexpro.DocRkkRepo;
 import ru.sibdigital.lexpro_migr.repo.zakon.PersonRepo;
 import ru.sibdigital.lexpro_migr.repo.zakon.UsersRepo;
 import ru.sibdigital.lexpro_migr.utils.FileUtils;
@@ -21,7 +24,6 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -103,8 +105,8 @@ public class ImportFilesService extends ImportService<FilesEntity, TpRkkFile>{
             try {
                 // сохранить файл
                 if (filesEntity.getFdata() != null) {
-                    //saveToFile(container.getFile(), filesEntity.getFdata());
-                    //getFileParameters(container);
+                    saveToFile(container.getFile(), filesEntity.getFdata());
+                    getFileParameters(container);
 
                     tpRkkFile = TpRkkFile.builder()
                             .id(filesEntity.getId())

@@ -9,5 +9,7 @@ public interface FilesRepo extends JpaRepository<FilesEntity, Long> {
 
     Boolean existsByDocumIdAndFgroupIdInAndFdataIsNull(Long documId, List<Long> fgroupIds);
 
+    Boolean existsAllByDocumIdAndFgroupIdInAndFdataIsNotNull(Long documId, List<Long> fgroupIds);
+
     Boolean existsByDocumIdAndFdataIsNull(Long documId);
 }

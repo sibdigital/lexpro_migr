@@ -186,10 +186,9 @@ public class ImportController {
             if (startId == null) {
                 startId = 0L;
             }
-            Long size = 0L;
             Integer saveCount = 0;
             Integer srcCount = 0;
-            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);            size = 0L;
+            checkProtocol.addRow("импорт "+entityName+": startId: " + startId + ", maxId: " + maxId + ", step: " + step);
             while (startId < maxId) {
                 List<?> entities = exportFbService.getEntities(dir, entityName, startId, startId + step);
                 //checkProtocol.addRow(String.format("выбрано записей: %d, startId: %d, endId: %d", entities.size(), startId, startId + step));
@@ -200,7 +199,6 @@ public class ImportController {
                 //checkProtocol.addRow("преобразовано записей: " + resultList.size());
                 saveCount += importDocumsService.saveToDb(resultList);
 
-                size += entities.size();
                 startId += step;
             }
             checkProtocol.addRow("--- всего выбрано из исходной БД записей: " + srcCount);
